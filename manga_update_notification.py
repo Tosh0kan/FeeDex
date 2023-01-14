@@ -7,8 +7,14 @@ import sys
 import re
 import json
 import httpx
+import asyncio
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
+
+
+class Globals:
+    global base_url
+    base_url = 'https://api.mangadex.org/manga/'
 
 
 class Guncs:
@@ -19,7 +25,7 @@ class Guncs:
         return os.path.join(base_path, relative_path)
 
     @staticmethod
-    def get_state():
+    def get_initial_state():
         global first_time_use
         try:
             with open(Guncs.resource_path(r'../manga_notification_settings.json'), 'r', encoding='utf-8') as f:
@@ -31,25 +37,35 @@ class Guncs:
 
     @staticmethod
     # TODO async for this funciton
-    def get_inital_manga_status(manga_id: str, tl_langs: list):
-        r = httpx.get(
-            f'https://api.mangadex.org/manga/{manga_id}/feed',
+    def get_inital_manga_status(manga_id: str):
+        r_title = httpx.get(
+            f'{base_url}{manga_id}',
+            follow_redirects=True
+        )
+        r_date = httpx.get(
+            f'{base_url}{manga_id}/feed',
             follow_redirects=True,
             params={
-                "translatedLanguage[]": tl_langs,
+                "translatedLanguage[]": "en",
                 "order[chapter]": "desc"
             }
         )
-        pass
+
+        manga_title = r_title.json()['data']['attributes']["title"]["en"]
+
+        most_recent_date = dt.strptime(r_date.json()["data"][0]["attributes"]["readableAt"], '%Y-%m-%dT%H:%M:%S%z')
+
+        return manga_title, most_recent_date
 
     @staticmethod
     def main():
         # TODO Finish menu
         # TODO Create functions for saving settings on a json file
-        Guncs.get_state()
+        Guncs.get_initial_state()
         if first_time_use:
             first_time_menu = "Select one of the options:\n1. Add manga to subscription list\n\n"
             menu_choice = input(first_time_menu)
+
         else:
             regular_menu = "Select one of the options:\n1. Manage manga subscriptions\n2. Other options\n\n"
             menu_choice = input(regular_menu)
@@ -60,4 +76,5 @@ class Guncs:
 
 
 class Main:
-    Guncs.main()
+    while True:
+        Guncs.main()
