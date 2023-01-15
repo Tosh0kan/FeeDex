@@ -1,7 +1,3 @@
-# ######################## To Do List ####################### #
-# TODO Option to chance how often requests are made (maybe)  #
-# ########################################################### #
-
 import os
 import sys
 import re
@@ -36,7 +32,6 @@ class Guncs:
             first_time_use = True
 
     @staticmethod
-    # TODO async for this funciton
     def get_inital_manga_status(manga_id: str):
         r_title = httpx.get(
             f'{base_url}{manga_id}',
@@ -59,8 +54,6 @@ class Guncs:
 
     @staticmethod
     def main():
-        # TODO Finish menu
-        # TODO Create functions for saving settings on a json file
         Guncs.get_initial_state()
         if first_time_use:
             first_time_menu = "Select one of the options:\n1. Add manga to subscription list\n\n"
@@ -77,6 +70,5 @@ class Guncs:
 
 if __name__ == '__main__':
     class Main:
-        # TODO Think of a way to have multiple functions running cuncurrently
         while True:
             Guncs.main()
