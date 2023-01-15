@@ -32,7 +32,9 @@ class Guncs:
             first_time_use = True
 
     @staticmethod
-    def get_inital_manga_status(manga_id: str):
+    def get_inital_manga_state(manga_url: str):
+        manga_id = re.split(r'.+title/([^/]+).+', manga_url)
+        manga_id = ''.join(manga_id)
         r_title = httpx.get(
             f'{base_url}{manga_id}',
             follow_redirects=True
@@ -65,7 +67,7 @@ class Guncs:
 
         if '1' in menu_choice:
             manga_url = input("Paste the URL of the manga's main page\n\n")
-            manga_id = re.split(r'title/([^/]+)', manga_url)
+            Guncs.get_inital_manga_state(manga_url)
 
 
 if __name__ == '__main__':
