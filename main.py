@@ -24,8 +24,9 @@ class Guncs:
     def get_initial_state():
         global first_time_use
         try:
-            with open(Guncs.resource_path(r'../manga_notification_settings.json'), 'r', encoding='utf-8') as f:
-                settings_file = f.read()
+            with open(Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
+                global settings_dict
+                settings_dict = f.read()
             first_time_use = False
 
         except FileNotFoundError:
@@ -50,24 +51,48 @@ class Guncs:
 
         manga_title = r_title.json()['data']['attributes']["title"]["en"]
 
-        most_recent_date = dt.strptime(r_date.json()["data"][0]["attributes"]["readableAt"], '%Y-%m-%dT%H:%M:%S%z')
+        most_recent_date = r_date.json()["data"][0]["attributes"]["readableAt"]
 
-        return manga_title, most_recent_date
+        return manga_title, manga_id, most_recent_date
+
+    @staticmethod
+    def save_settings(manga_title: str, manga_id: str, most_recent_date: str):
+        if first_time_use:
+            settings_dict = {}
+            settings_dict.setdefault(manga_title, []).append(manga_id), settings_dict.setdefault(manga_title, []).append(most_recent_date)
+
+            with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+                f.write(json.dumps(settings_dict))
+
+        else:
+            with open(Guncs.resource_path('manga_notification_settings.json'), 'a', encoding='utf-8') as f:
+                f.write(json.dumps(settings_dict))
 
     @staticmethod
     def main():
         Guncs.get_initial_state()
         if first_time_use:
-            first_time_menu = "Select one of the options:\n1. Add manga to subscription list\n\n"
+            first_time_menu = "Select one of the options:\n1. Add manga to subscription list\n"
             menu_choice = input(first_time_menu)
+
+            if '1' in menu_choice:
+                while True:
+                    manga_url = input("\nPaste the URL of the manga's main page\n")
+
+                    if 'http' in manga_url:
+                        manga_title, manga_id, most_recent_data = Guncs.get_inital_manga_state(manga_url)
+                        Guncs.save_settings(manga_title, manga_id, most_recent_data)
+                        break
+
+                    else:
+                        print('Invalid URL. Please, try again.')
+
+            else:
+                print("Invalid input. Please, try again.")
 
         else:
             regular_menu = "Select one of the options:\n1. Manage manga subscriptions\n2. Other options\n\n"
             menu_choice = input(regular_menu)
-
-        if '1' in menu_choice:
-            manga_url = input("Paste the URL of the manga's main page\n\n")
-            Guncs.get_inital_manga_state(manga_url)
 
 
 if __name__ == '__main__':
