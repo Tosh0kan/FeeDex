@@ -92,7 +92,6 @@ class Guncs:
             menu_choice = input(main_menu)
 
 
-
 if __name__ == '__main__':
     class Main:
         while True:
