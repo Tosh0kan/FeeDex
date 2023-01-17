@@ -30,6 +30,25 @@ class Guncs:
             first_time_use = True
 
     @staticmethod
+    def menu_structure():
+        global first_time_use
+        while True:
+            if first_time_use:
+                first_sub = input("\nSince this is your first time using the program, we need to start by adding your first manga to watch.\nPlease, paste the URL of the manga's main page\n\n")
+
+                if 'http' in first_sub:
+                    manga_title, manga_id, most_recent_date = Guncs.get_inital_manga_state(first_sub)
+                    Guncs.save_settings(manga_title, manga_id, most_recent_date)
+                    first_time_use = False
+                    return
+
+                else:
+                    print("Invalid URL. Please try again.\n\n")
+
+            else:
+                pass
+
+    @staticmethod
     def get_inital_manga_state(manga_url: str):
         manga_id = re.split(r'.+title/([^/]+).+', manga_url)
         manga_id = ''.join(manga_id)
@@ -67,29 +86,13 @@ class Guncs:
 
     @staticmethod
     def main():
+        global first_time_use
         Guncs.get_initial_state()
         if first_time_use:
-            first_time_menu = "Select one of the options:\n1. Add manga subscription\n"
-            menu_choice = input(first_time_menu)
-
-            if '1' in menu_choice:
-                while True:
-                    manga_url = input("\nPaste the URL of the manga's main page\n")
-
-                    if 'http' in manga_url:
-                        manga_title, manga_id, most_recent_data = Guncs.get_inital_manga_state(manga_url)
-                        Guncs.save_settings(manga_title, manga_id, most_recent_data)
-                        break
-
-                    else:
-                        print('\nInvalid URL. Please, try again.\n')
-
-            else:
-                print("Invalid input. Please, try again.")
+            Guncs.menu_structure()
 
         else:
-            main_menu = "\nSelect one of the options:\n1.  Add manga subscription\n2. Other options\n\n"
-            menu_choice = input(main_menu)
+            Guncs.menu_structure()
 
 
 if __name__ == '__main__':
