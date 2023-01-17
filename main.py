@@ -3,9 +3,6 @@ import sys
 import re
 import json
 import httpx
-import asyncio
-from bs4 import BeautifulSoup as bs
-from datetime import datetime as dt
 
 
 class Globals:
@@ -72,7 +69,7 @@ class Guncs:
     def main():
         Guncs.get_initial_state()
         if first_time_use:
-            first_time_menu = "Select one of the options:\n1. Add manga to subscription list\n"
+            first_time_menu = "Select one of the options:\n1. Add manga subscription\n"
             menu_choice = input(first_time_menu)
 
             if '1' in menu_choice:
@@ -85,14 +82,15 @@ class Guncs:
                         break
 
                     else:
-                        print('Invalid URL. Please, try again.')
+                        print('\nInvalid URL. Please, try again.\n')
 
             else:
                 print("Invalid input. Please, try again.")
 
         else:
-            regular_menu = "Select one of the options:\n1. Manage manga subscriptions\n2. Other options\n\n"
-            menu_choice = input(regular_menu)
+            main_menu = "\nSelect one of the options:\n1.  Add manga subscription\n2. Other options\n\n"
+            menu_choice = input(main_menu)
+
 
 
 if __name__ == '__main__':
