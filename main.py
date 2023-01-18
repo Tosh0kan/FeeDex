@@ -41,10 +41,9 @@ class Guncs:
 
                 if 'http' in first_sub:
                     manga_title, manga_id, most_recent_date = Guncs.get_inital_manga_state(first_sub)
-                    Guncs.save_settings(manga_title, manga_id, most_recent_date)
+                    Guncs.save_settings(manga_title=manga_title, manga_id=manga_id, most_recent_date=most_recent_date)
                     first_time_use = False
                     return
-
                 else:
                     print("Invalid URL. Please try again.\n")
 
@@ -58,17 +57,32 @@ class Guncs:
                             print('\n', manga, sep='')
                         scnd_menu_choice = input(("\nChoose one of the options below:\n1. Add manga to subscriptions\n2. Remove manga from subscriptions\n3. Previous menu\n\n"))
 
-                        if '1' in scnd_menu_choice:
+                        if '1' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             manga_url = input("\nPlease, paste the URL of the manga's main page\n")
                             manga_title, manga_id, most_recent_date = Guncs.get_inital_manga_state(manga_url)
-                            Guncs.save_settings(manga_title, manga_id, most_recent_date)
+                            Guncs.save_settings(manga_title=manga_title, manga_id=manga_id, most_recent_date=most_recent_date)
 
-                        elif '2' in scnd_menu_choice:
-                            pass
+                        elif '2' in scnd_menu_choice and len(scnd_menu_choice) == 1:
+                            cnt = 0
+                            for manga in Arrays.manga_list:
+                                print('\n', cnt, '.', manga, sep='')
+                                cnt += 1
 
-                        elif '3' in scnd_menu_choice:
+                            while True:
+                                delete_choice = input("\nChoose the manga you want to unsubscribe from\n")
+                                try:
+                                    delete_choice = int(delete_choice)
+                                    _args = ['pop', Arrays.manga_list[delete_choice]]
+                                    Guncs.save_settings(*_args)
+                                    break
+
+                                except ValueError:
+                                    print("\nInvalid choice. Make sure you're choosing the option by typing in the according number\n")
+
+                        elif '3' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             break
-
+                        else:
+                            print("\nInvalid input. Please try again.\n")
                 else:
                     print("\nInvalid input. Please try again.\n")
 
@@ -96,10 +110,20 @@ class Guncs:
         return manga_title, manga_id, most_recent_date
 
     @staticmethod
-    def save_settings(manga_title: str, manga_id: str, most_recent_date: str):
+    def save_settings(*args, manga_title: str = '', manga_id: str = '', most_recent_date: str = ''):
         if first_time_use:
             Arrays.settings_dict.setdefault(manga_title, []).append(manga_id)
             Arrays.settings_dict.setdefault(manga_title, []).append(most_recent_date)
+
+            with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+                f.write(json.dumps(Arrays.settings_dict, indent=4))
+
+        elif 'pop' in args:
+            Arrays.manga_list.remove(args[1])
+            for key in Arrays.settings_dict.keys():
+                if args[1] in key:
+                    Arrays.settings_dict.pop(key)
+                    break
 
             with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
