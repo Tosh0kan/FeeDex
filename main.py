@@ -72,9 +72,13 @@ class Guncs:
                                 delete_choice = input("\nChoose the manga you want to unsubscribe from\n")
                                 try:
                                     delete_choice = int(delete_choice)
-                                    _args = ['pop', Arrays.manga_list[delete_choice]]
-                                    Guncs.save_settings(*_args)
-                                    break
+                                    if delete_choice <= cnt:
+                                        _args = ['pop', Arrays.manga_list[delete_choice]]
+                                        Guncs.save_settings(*_args)
+                                        break
+
+                                    else:
+                                        print("\nInvalid choice. Make sure you're choosing the option by typing in the according number\n")
 
                                 except ValueError:
                                     print("\nInvalid choice. Make sure you're choosing the option by typing in the according number\n")
