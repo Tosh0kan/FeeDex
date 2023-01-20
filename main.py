@@ -111,7 +111,7 @@ class Guncs:
 
         most_recent_date = r_date.json()["data"][0]["attributes"]["readableAt"]
 
-        return manga_title, manga_id, most_recent_date
+        return manga_title, most_recent_date
 
     @staticmethod
     def save_settings(*args, manga_title: str = '', manga_id: str = '', most_recent_date: str = ''):
