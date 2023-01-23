@@ -13,7 +13,7 @@ class Arrays:
 
 class Guncs:
     @staticmethod
-    def resource_path(relative_path):
+    def resource_path(relative_path: str) -> str:
         """ Get absolute path to resource, works for dev and for PyInstaller """
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base_path, relative_path)
@@ -91,7 +91,7 @@ class Guncs:
                     print("\nInvalid input. Please try again.\n")
 
     @staticmethod
-    def get_inital_manga_state(manga_url: str):
+    def get_inital_manga_state(manga_url: str) -> tuple(str, str, str):
         manga_id = re.split(r'.+title/([^/]+).+', manga_url)
         manga_id = ''.join(manga_id)
         r_title = httpx.get(
