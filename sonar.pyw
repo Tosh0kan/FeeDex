@@ -2,8 +2,8 @@ import main
 import json
 import httpx
 import asyncio
-import pytz
-from plyer import notification
+from time import sleep
+from winotify import Notification
 from datetime import datetime as dt
 from datetime import timedelta as td
 
@@ -43,14 +43,28 @@ class Guncs:
             Arrays.updated_status.setdefault(title, ap_items)
 
     @staticmethod
-    def date_comparer() -> None:
+    def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
+        toast = Notification(
+            app_id="MangaDex RSS",
+            title=series_title,
+            msg=f"Ch. {ch_no}: {ch_title}",
+            launch=f"https://www.mangadex.org/chapter/{ch_id}"
+        )
+        toast.show()
+        sleep(0.1)
+
+    @staticmethod
+    def update_checker() -> None:
         for title, list in Arrays.settings_dict.items():
             for key, value in Arrays.updated_status.items():
                 if title == key:
                     old_time = dt.strptime(list[1], '%Y-%m-%dT%H:%M:%S%z')
                     new_time = dt.strptime(value["attributes"]["readableAt"], '%Y-%m-%dT%H:%M:%S%z')
+                    ch_no = value["attributes"]["chapter"]
+                    ch_title = value["attributes"]["title"]
+                    ch_id = value["id"]
                     if old_time < new_time:
-                        print(title, "has updated")
+                        Guncs.toaster(title, ch_no, ch_title, ch_id)
                     else:
                         print(title, "has not updated")
                     break
@@ -59,4 +73,4 @@ class Guncs:
 if __name__ == '__main__':
     Guncs.load_settings()
     asyncio.run(Guncs.sonar())
-    Guncs.manga_status_checker()
+    Guncs.update_checker()
