@@ -29,14 +29,14 @@ class Guncs:
             "order[chapter]": "desc"
         }
 
-        all_urls = [main.Arrays.base_url + id[0] + '/feed' for key, id in Arrays.settings_dict.items()]
+        all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items()]
         async with httpx.AsyncClient() as client:
             tasks = (client.get(url, follow_redirects=True, params=params) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
 
         for req in reqs:
             for key, value in Arrays.settings_dict.items():
-                if value[0] == req.json()["data"][0]["relationships"][1]["id"]:
+                if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
                     title = key
                     break
             ap_items = req.json()["data"][0]
@@ -55,10 +55,10 @@ class Guncs:
 
     @staticmethod
     def update_checker() -> None:
-        for title, list in Arrays.settings_dict.items():
+        for title, data in Arrays.settings_dict.items():
             for key, value in Arrays.updated_status.items():
                 if title == key:
-                    old_time = dt.strptime(list[1], '%Y-%m-%dT%H:%M:%S%z')
+                    old_time = dt.strptime(data["attributes"]["readableAt"], '%Y-%m-%dT%H:%M:%S%z')
                     new_time = dt.strptime(value["attributes"]["readableAt"], '%Y-%m-%dT%H:%M:%S%z')
                     ch_no = value["attributes"]["chapter"]
                     ch_title = value["attributes"]["title"]
@@ -66,11 +66,20 @@ class Guncs:
                     if old_time < new_time:
                         Guncs.toaster(title, ch_no, ch_title, ch_id)
                     else:
-                        print(title, "has not updated")
+                        print(title, "wasn't updated")
+                        #Arrays.updated_status.pop(key)
                     break
+
+    @staticmethod
+    def save_settings(new_settings: dict) -> None:
+        Arrays.settings_dict.update(new_settings)
+
+        with open(main.Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+            f.write(json.dumps(Arrays.settings_dict, indent=4))
 
 
 if __name__ == '__main__':
     Guncs.load_settings()
     asyncio.run(Guncs.sonar())
     Guncs.update_checker()
+    Guncs.save_settings(Arrays.updated_status)
