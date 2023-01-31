@@ -3,9 +3,9 @@ import json
 import httpx
 import asyncio
 from time import sleep
+from bs4 import BeautifulSoup
 from winotify import Notification
 from datetime import datetime as dt
-from datetime import timedelta as td
 
 
 class Arrays:
@@ -45,7 +45,7 @@ class Guncs:
     @staticmethod
     def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
         toast = Notification(
-            app_id="MangaDex RSS",
+            app_id="MangaDex Feed",
             title=series_title,
             msg=f"Ch. {ch_no}: {ch_title}",
             launch=f"https://www.mangadex.org/chapter/{ch_id}"
@@ -54,7 +54,7 @@ class Guncs:
         sleep(0.1)
 
     @staticmethod
-    def update_checker() -> None:
+    def new_ch_check() -> None:
         for title, data in Arrays.settings_dict.items():
             for key, value in Arrays.updated_status.items():
                 if title == key:
@@ -66,8 +66,7 @@ class Guncs:
                     if old_time < new_time:
                         Guncs.toaster(title, ch_no, ch_title, ch_id)
                     else:
-                        print(title, "wasn't updated")
-                        #Arrays.updated_status.pop(key)
+                        Arrays.updated_status.pop(key)
                     break
 
     @staticmethod
@@ -77,9 +76,44 @@ class Guncs:
         with open(main.Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(Arrays.settings_dict, indent=4))
 
+    @staticmethod
+    def new_version_check() -> bool:
+        def get_latest_version() -> str:
+            r_vers = httpx.get('https://github.com/Tosh0kan/MangaDexFeed/releases')
+            active_page = BeautifulSoup(r_vers.text, 'lxml')
+            current_version = active_page.find_all('h2', class_='sr-only')[0].text
+            return current_version
+
+        def version_comparer(remote, local) -> bool:
+            remote_split = remote.split('.')
+            local_split = local.split('.')
+            remote = int(''.join(remote_split))
+            local = int(''.join(local_split))
+
+            return remote > local
+
+        def toaster(version):
+            toast = Notification(
+                app_id="MangaDex Feed",
+                title="MangaDex Feed has been updated!",
+                msg=f"Version {version} has been released!",
+                launch=f"https://github.com/Tosh0kan/MangaDexFeed/releases/tag/{version}"
+            )
+            toast.show()
+
+        cur_ver = get_latest_version()
+        bool_result = version_comparer(cur_ver, main.__version__)
+
+        if bool_result:
+            toaster(cur_ver)
+
+    @staticmethod
+    def main():
+        pass
+
 
 if __name__ == '__main__':
     Guncs.load_settings()
     asyncio.run(Guncs.sonar())
-    Guncs.update_checker()
+    Guncs.new_ch_check()
     Guncs.save_settings(Arrays.updated_status)

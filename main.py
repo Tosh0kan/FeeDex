@@ -4,6 +4,8 @@ import re
 import json
 import httpx
 
+__author__ = "Tosh0kan"
+__version__ = "0.5.0"
 
 class Arrays:
     base_url = 'https://api.mangadex.org/manga/'
