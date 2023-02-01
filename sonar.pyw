@@ -77,7 +77,7 @@ class Guncs:
             f.write(json.dumps(Arrays.settings_dict, indent=4))
 
     @staticmethod
-    def new_version_check() -> bool:
+    def new_version_check() -> None:
         def get_latest_version() -> str:
             r_vers = httpx.get('https://github.com/Tosh0kan/MangaDexFeed/releases')
             active_page = BeautifulSoup(r_vers.text, 'lxml')
@@ -92,7 +92,7 @@ class Guncs:
 
             return remote > local
 
-        def toaster(version):
+        def toaster(version) -> None:
             toast = Notification(
                 app_id="MangaDex Feed",
                 title="MangaDex Feed has been updated!",
