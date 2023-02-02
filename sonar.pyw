@@ -1,4 +1,5 @@
 import main
+import pytz
 import json
 import httpx
 import asyncio
@@ -8,20 +9,23 @@ from winotify import Notification
 from datetime import datetime as dt
 
 
+# All arrays used in the program. Most functions don't have parameters nor
+# return anything. Instead, they work by directly interacting with the arrays
+# in this class.
 class Arrays:
     settings_dict = {}
-    manga_list = []
     updated_status = {}
 
 
 class Guncs:
+# Simple settings loading function.
     @staticmethod
     def load_settings() -> None:
         with open(main.Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
             Arrays.settings_dict = json.loads(f.read())
 
-        # Arrays.manga_list = [key for key, value in Arrays.settings_dict.items()]
-
+# This function requests data on the latest chapter for all subscribed manga,
+# from the API and writes the info to the "updated_status" dictionary.
     @staticmethod
     async def sonar() -> None:
         params = {
@@ -34,6 +38,7 @@ class Guncs:
             tasks = (client.get(url, follow_redirects=True, params=params) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
 
+# This loop
         for req in reqs:
             for key, value in Arrays.settings_dict.items():
                 if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
@@ -51,7 +56,7 @@ class Guncs:
             launch=f"https://www.mangadex.org/chapter/{ch_id}"
         )
         toast.show()
-        sleep(0.1)
+        sleep(0.5)
 
     @staticmethod
     def new_ch_check() -> None:
@@ -84,7 +89,7 @@ class Guncs:
             current_version = active_page.find_all('h2', class_='sr-only')[0].text
             return current_version
 
-        def version_comparer(remote, local) -> bool:
+        def version_comparer(remote: str, local: str) -> bool:
             remote_split = remote.split('.')
             local_split = local.split('.')
             remote = int(''.join(remote_split))
@@ -92,7 +97,7 @@ class Guncs:
 
             return remote > local
 
-        def toaster(version) -> None:
+        def toaster(version: str) -> None:
             toast = Notification(
                 app_id="MangaDex Feed",
                 title="MangaDex Feed has been updated!",
@@ -101,19 +106,30 @@ class Guncs:
             )
             toast.show()
 
+        def update_metadata(cur_time: str, cur_ver: str) -> None:
+            meta_dict = {
+                "metadata": {
+                    "version": cur_ver,
+                    "last check": str(cur_time.strftime('%Y-%m-%dT%H:%M:%S%z'))
+                }
+            }
+            Guncs.save_settings(meta_dict)
+
         cur_ver = get_latest_version()
         bool_result = version_comparer(cur_ver, main.__version__)
 
         if bool_result:
             toaster(cur_ver)
 
+        update_metadata(dt.now(pytz.utc), main.__version__)
+
     @staticmethod
     def main():
-        pass
+        timer = dt.now()
+        Guncs.load_settings()
+        asyncio.run(Guncs.sonar())
+        
 
 
 if __name__ == '__main__':
-    Guncs.load_settings()
-    asyncio.run(Guncs.sonar())
-    Guncs.new_ch_check()
-    Guncs.save_settings(Arrays.updated_status)
+    Guncs.main()
