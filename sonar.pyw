@@ -18,14 +18,14 @@ class Arrays:
 
 
 class Guncs:
-# Simple settings loading function.
+    # Simple settings loading function.
     @staticmethod
     def load_settings() -> None:
         with open(main.Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
             Arrays.settings_dict = json.loads(f.read())
 
-# This function requests data on the latest chapter for all subscribed manga,
-# from the API and writes the info to the "updated_status" dictionary.
+    # This function requests data on the latest chapter for all subscribed manga,
+    # from the API and writes the info to the "updated_status" dictionary.
     @staticmethod
     async def sonar() -> None:
         params = {
@@ -38,7 +38,9 @@ class Guncs:
             tasks = (client.get(url, follow_redirects=True, params=params) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
 
-# This loop
+        # The inner loop gets the title of the manga from the API to use as the
+        # key of the manga's key-value pair. The value is all data about the newest
+        # chapter.
         for req in reqs:
             for key, value in Arrays.settings_dict.items():
                 if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
@@ -47,17 +49,10 @@ class Guncs:
             ap_items = req.json()["data"][0]
             Arrays.updated_status.setdefault(title, ap_items)
 
-    @staticmethod
-    def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
-        toast = Notification(
-            app_id="MangaDex Feed",
-            title=series_title,
-            msg=f"Ch. {ch_no}: {ch_title}",
-            launch=f"https://www.mangadex.org/chapter/{ch_id}"
-        )
-        toast.show()
-        sleep(0.5)
-
+    # Compares the information gotten from the API that was store in the
+    # updated_status dict, with the one retrieved from the settings JSON,
+    # stored in the settings_dict array. It also removes all key-value pairs
+    # from mangas that hasn't been updated.
     @staticmethod
     def new_ch_check() -> None:
         for title, data in Arrays.settings_dict.items():
@@ -74,6 +69,24 @@ class Guncs:
                         Arrays.updated_status.pop(key)
                     break
 
+    # The toaster notification function.
+    # Key detail: DO NOT REMOVE OR CHANGE THE SLEEP FUNCTION. Otherwise,
+    # all the notifications may not spawn apropriately. Reason is unknown,
+    # but I assume it has something to do with the code's execution speed.
+    @staticmethod
+    def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
+        toast = Notification(
+            app_id="MangaDex Feed",
+            title=series_title,
+            msg=f"Ch. {ch_no}: {ch_title}",
+            launch=f"https://www.mangadex.org/chapter/{ch_id}"
+        )
+        toast.show()
+        sleep(0.5)
+
+    # It parses it updates the information already contained in the key-value
+    # pairs from the settings JSON. As it does not adds any new keys, only updates
+    # the values, the structure of the JSON is preserved.
     @staticmethod
     def save_settings(new_settings: dict) -> None:
         Arrays.settings_dict.update(new_settings)
@@ -81,6 +94,8 @@ class Guncs:
         with open(main.Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(Arrays.settings_dict, indent=4))
 
+    # Checks for new versions of this program, and updates the latest time it
+    # executed the check.
     @staticmethod
     def new_version_check() -> None:
         def get_latest_version() -> str:
@@ -125,11 +140,9 @@ class Guncs:
 
     @staticmethod
     def main():
-        timer = dt.now()
         Guncs.load_settings()
         asyncio.run(Guncs.sonar())
         
-
 
 if __name__ == '__main__':
     Guncs.main()
