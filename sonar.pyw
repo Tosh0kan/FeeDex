@@ -139,7 +139,7 @@ class Guncs:
             meta_dict = {
                 "metadata": {
                     "version": cur_ver,
-                    "last check": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
+                    "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
                 }
             }
             Guncs.save_settings(meta_dict)

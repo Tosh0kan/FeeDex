@@ -1,11 +1,14 @@
 import os
 import sys
 import re
+import pytz
 import json
 import httpx
+from datetime import datetime as dt
 
 __author__ = "Tosh0kan"
 __version__ = "0.5.0"
+
 
 class Arrays:
     base_url = 'https://api.mangadex.org/manga/'
@@ -21,7 +24,7 @@ class Guncs:
         return os.path.join(base_path, relative_path)
 
     @staticmethod
-    def get_initial_state():
+    def get_initial_state() -> None:
         global first_time_use
         try:
             with open(Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
@@ -29,13 +32,14 @@ class Guncs:
             first_time_use = False
 
             for key in Arrays.settings_dict.keys():
-                Arrays.manga_list.append(key)
+                if "metadata" not in key:
+                    Arrays.manga_list.append(key)
 
         except FileNotFoundError:
             first_time_use = True
 
     @staticmethod
-    def menu_structure():
+    def menu_structure() -> None:
         global first_time_use
         while True:
             if first_time_use:
@@ -93,7 +97,7 @@ class Guncs:
                     print("\nInvalid input. Please try again.\n")
 
     @staticmethod
-    def get_inital_manga_state(manga_url: str) -> tuple(str, str):
+    def get_inital_manga_state(manga_url: str) -> tuple:
         manga_id = re.split(r'.+title/([^/]+).+', manga_url)
         manga_id = ''.join(manga_id)
         r_title = httpx.get(
@@ -116,9 +120,17 @@ class Guncs:
         return manga_title, most_recent_chapter
 
     @staticmethod
-    def save_settings(*args, manga_title: str = '', most_recent_chapter: dict = {}):
+    def save_settings(*args, manga_title: str = '', most_recent_chapter: dict = None) -> None:
+        meta_dict = {
+            "metadata": {
+                "version": __version__,
+                "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
+            }
+        }
+
         if first_time_use:
             Arrays.settings_dict.setdefault(manga_title, most_recent_chapter)
+            Arrays.settings_dict.update(meta_dict)
 
             with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
@@ -134,16 +146,18 @@ class Guncs:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
         else:
+            Arrays.settings_dict.pop("metadata")
             new_sub = {}
             new_sub.setdefault(manga_title, most_recent_chapter)
             Arrays.settings_dict.update(new_sub)
+            Arrays.settings_dict.update(meta_dict)
             Arrays.manga_list.append(manga_title)
 
             with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
     @staticmethod
-    def main():
+    def main() -> None:
         global first_time_use
         Guncs.get_initial_state()
         if first_time_use:
