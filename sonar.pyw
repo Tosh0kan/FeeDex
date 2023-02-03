@@ -7,6 +7,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from winotify import Notification
 from datetime import datetime as dt
+from datetime import timedelta as td
 
 
 # All arrays used in the program. Most functions don't have parameters nor
@@ -34,7 +35,7 @@ class Guncs:
             "order[chapter]": "desc"
         }
 
-        all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items()]
+        all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items() if "metadata" not in key]
         async with httpx.AsyncClient() as client:
             tasks = (client.get(url, follow_redirects=True, params=params) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
@@ -134,11 +135,11 @@ class Guncs:
             )
             toast.show()
 
-        def update_metadata(cur_time: str, cur_ver: str) -> None:
+        def update_metadata(cur_ver: str) -> None:
             meta_dict = {
                 "metadata": {
                     "version": cur_ver,
-                    "last check": str(cur_time.strftime('%Y-%m-%dT%H:%M:%S%z'))
+                    "last check": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
                 }
             }
             Guncs.save_settings(meta_dict)
@@ -149,16 +150,24 @@ class Guncs:
         if bool_result:
             toaster(cur_ver)
 
-        update_metadata(dt.now(pytz.utc), main.__version__)
+        update_metadata(main.__version__)
 
     @staticmethod
     def main():
-        timer = dt.now(pytz.utc)
+        sonar_timer = dt.now(pytz.utc)
         Guncs.load_settings()
+        last_version_check = dt.strptime(Arrays.settings_dict["metadata"]["lastCheck"], '%Y-%m-%dT%H:%M:%S%z')
         asyncio.run(Guncs.sonar())
-        Guncs.new_ch_check()
-        Guncs.save_settings(Arrays.updated_status)
-        Guncs.new_version_check()
+
+        while True:
+            if dt.now(pytz.utc) >= sonar_timer + td(minutes=30):
+                asyncio.run(Guncs.sonar())
+                Guncs.new_ch_check()
+                Guncs.save_settings(Arrays.updated_status)
+
+            if dt.now(pytz.utc) >= last_version_check + td(days=30):
+                Guncs.new_version_check()
+
 
 if __name__ == '__main__':
     Guncs.main()
