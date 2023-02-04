@@ -25,6 +25,10 @@ class Guncs:
 
     @staticmethod
     def get_initial_state() -> None:
+        """
+        Checks if this is the first time using the program. Does it b checking the
+        existence of the settings JSON and sets a global variable accordingly.
+        """
         global first_time_use
         try:
             with open(Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
@@ -40,6 +44,11 @@ class Guncs:
 
     @staticmethod
     def menu_structure() -> None:
+        """
+        Menu structure. This is awful and I will remove it AS SOON as I figure
+        out a better way to do it. If you have suggestions, by all means, give
+        them to me.
+        """
         global first_time_use
         while True:
             if first_time_use:
@@ -98,6 +107,10 @@ class Guncs:
 
     @staticmethod
     def get_inital_manga_state(manga_url: str) -> tuple:
+        """
+        Creates the settings JSON in case it doesn't exist yet, and requests
+        the API the current state of the subscribed manga to populate the JSON.
+        """
         manga_id = re.split(r'.+title/([^/]+).+', manga_url)
         manga_id = ''.join(manga_id)
         r_title = httpx.get(
@@ -121,6 +134,11 @@ class Guncs:
 
     @staticmethod
     def save_settings(*args, manga_title: str = '', most_recent_chapter: dict = None) -> None:
+        """
+        Creates the inner dicts in the settings JSON. Has options for removing
+        them as well by passing the string 'pop' and the key of the dictionary
+        to be removed as star arguments.
+        """
         meta_dict = {
             "metadata": {
                 "version": __version__,
