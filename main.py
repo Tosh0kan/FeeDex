@@ -1,8 +1,13 @@
 import os
 import sys
 import re
+import pytz
 import json
 import httpx
+from datetime import datetime as dt
+
+__author__ = "Tosh0kan"
+__version__ = "0.5.0"
 
 
 class Arrays:
@@ -19,7 +24,11 @@ class Guncs:
         return os.path.join(base_path, relative_path)
 
     @staticmethod
-    def get_initial_state():
+    def get_initial_state() -> None:
+        """
+        Checks if this is the first time using the program. Does it b checking the
+        existence of the settings JSON and sets a global variable accordingly.
+        """
         global first_time_use
         try:
             with open(Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
@@ -27,21 +36,27 @@ class Guncs:
             first_time_use = False
 
             for key in Arrays.settings_dict.keys():
-                Arrays.manga_list.append(key)
+                if "metadata" not in key:
+                    Arrays.manga_list.append(key)
 
         except FileNotFoundError:
             first_time_use = True
 
     @staticmethod
-    def menu_structure():
+    def menu_structure() -> None:
+        """
+        Menu structure. This is awful and I will remove it AS SOON as I figure
+        out a better way to do it. If you have suggestions, by all means, give
+        them to me.
+        """
         global first_time_use
         while True:
             if first_time_use:
                 first_sub = input("\nSince this is your first time using the program, we need to start by adding your first manga to watch.\nPlease, paste the URL of the manga's main page\n\n")
 
                 if 'http' in first_sub:
-                    manga_title, manga_id, most_recent_date = Guncs.get_inital_manga_state(first_sub)
-                    Guncs.save_settings(manga_title=manga_title, manga_id=manga_id, most_recent_date=most_recent_date)
+                    manga_title, most_recent_chapter = Guncs.get_inital_manga_state(first_sub)
+                    Guncs.save_settings(manga_title=manga_title, most_recent_chapter=most_recent_chapter)
                     first_time_use = False
                     return
                 else:
@@ -59,8 +74,8 @@ class Guncs:
 
                         if '1' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             manga_url = input("\nPlease, paste the URL of the manga's main page\n")
-                            manga_title, manga_id, most_recent_date = Guncs.get_inital_manga_state(manga_url)
-                            Guncs.save_settings(manga_title=manga_title, manga_id=manga_id, most_recent_date=most_recent_date)
+                            manga_title, most_recent_chapter = Guncs.get_inital_manga_state(manga_url)
+                            Guncs.save_settings(manga_title=manga_title, most_recent_chapter=most_recent_chapter)
 
                         elif '2' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             cnt = 0
@@ -91,14 +106,18 @@ class Guncs:
                     print("\nInvalid input. Please try again.\n")
 
     @staticmethod
-    def get_inital_manga_state(manga_url: str) -> tuple(str, str, str):
+    def get_inital_manga_state(manga_url: str) -> tuple:
+        """
+        Creates the settings JSON in case it doesn't exist yet, and requests
+        the API the current state of the subscribed manga to populate the JSON.
+        """
         manga_id = re.split(r'.+title/([^/]+).+', manga_url)
         manga_id = ''.join(manga_id)
         r_title = httpx.get(
             f'{Arrays.base_url}{manga_id}',
             follow_redirects=True
         )
-        r_date = httpx.get(
+        r_data = httpx.get(
             f'{Arrays.base_url}{manga_id}/feed',
             follow_redirects=True,
             params={
@@ -106,18 +125,30 @@ class Guncs:
                 "order[chapter]": "desc"
             }
         )
-
+    
         manga_title = r_title.json()['data']['attributes']["title"]["en"]
 
-        most_recent_date = r_date.json()["data"][0]["attributes"]["readableAt"]
+        most_recent_chapter = r_data.json()["data"][0]
 
-        return manga_title, manga_id, most_recent_date
+        return manga_title, most_recent_chapter
 
     @staticmethod
-    def save_settings(*args, manga_title: str = '', manga_id: str = '', most_recent_date: str = ''):
+    def save_settings(*args, manga_title: str = '', most_recent_chapter: dict = None) -> None:
+        """
+        Creates the inner dicts in the settings JSON. Has options for removing
+        them as well by passing the string 'pop' and the key of the dictionary
+        to be removed as star arguments.
+        """
+        meta_dict = {
+            "metadata": {
+                "version": __version__,
+                "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
+            }
+        }
+
         if first_time_use:
-            Arrays.settings_dict.setdefault(manga_title, []).append(manga_id)
-            Arrays.settings_dict.setdefault(manga_title, []).append(most_recent_date)
+            Arrays.settings_dict.setdefault(manga_title, most_recent_chapter)
+            Arrays.settings_dict.update(meta_dict)
 
             with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
@@ -133,17 +164,18 @@ class Guncs:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
         else:
+            Arrays.settings_dict.pop("metadata")
             new_sub = {}
-            new_sub.setdefault(manga_title, []).append(manga_id)
-            new_sub.setdefault(manga_title, []).append(most_recent_date)
+            new_sub.setdefault(manga_title, most_recent_chapter)
             Arrays.settings_dict.update(new_sub)
+            Arrays.settings_dict.update(meta_dict)
             Arrays.manga_list.append(manga_title)
 
             with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
     @staticmethod
-    def main():
+    def main() -> None:
         global first_time_use
         Guncs.get_initial_state()
         if first_time_use:
