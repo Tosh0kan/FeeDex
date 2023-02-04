@@ -5,9 +5,10 @@
     <p>A pull notification program made with Python for Windows 10 & 11</p>
 </div>
 
-#
-#
-#
+
+
+
+
 ## Introduction
 I created this project because I was tired of forgetting to check mangas, and given that the MangaDex team has far more pressing issues than implementing an RSS feed or push notification system, I decided to take matters into my own hands.
 
