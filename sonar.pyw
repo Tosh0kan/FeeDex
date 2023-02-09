@@ -37,19 +37,24 @@ class Guncs:
 
         all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items() if "metadata" not in key]
         async with httpx.AsyncClient() as client:
-            tasks = (client.get(url, follow_redirects=True, params=params) for url in all_urls)
+            tasks = (client.get(url, follow_redirects=True, params=params, timeout=10) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
 
         # The inner loop gets the title of the manga from the API to use as the
         # key of the manga's key-value pair. The value is all data about the newest
         # chapter.
         for req in reqs:
-            for key, value in Arrays.settings_dict.items():
-                if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
-                    title = key
-                    break
-            ap_items = req.json()["data"][0]
-            Arrays.updated_status.setdefault(title, ap_items)
+            try:
+                if req.status_code == 200:
+                    for key, value in Arrays.settings_dict.items():
+                        if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
+                            title = key
+                            break
+                    ap_items = req.json()["data"][0]
+                    Arrays.updated_status.setdefault(title, ap_items)
+
+            except Exception:
+                return
 
     @staticmethod
     def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
