@@ -18,12 +18,6 @@ class Arrays:
 
 class Guncs:
     @staticmethod
-    def resource_path(relative_path: str) -> str:
-        """ Get absolute path to resource, works for dev and for PyInstaller """
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
-
-    @staticmethod
     def get_initial_state() -> None:
         """
         Checks if this is the first time using the program. Does it b checking the
@@ -31,7 +25,7 @@ class Guncs:
         """
         global first_time_use
         try:
-            with open(Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
+            with open('manga_notification_settings.json', 'r', encoding='utf-8') as f:
                 Arrays.settings_dict = json.loads(f.read())
             first_time_use = False
 
@@ -150,7 +144,7 @@ class Guncs:
             Arrays.settings_dict.setdefault(manga_title, most_recent_chapter)
             Arrays.settings_dict.update(meta_dict)
 
-            with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+            with open('manga_notification_settings.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
         elif 'pop' in args:
@@ -160,7 +154,7 @@ class Guncs:
                     Arrays.settings_dict.pop(key)
                     break
 
-            with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+            with open('manga_notification_settings.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
         else:
@@ -171,7 +165,7 @@ class Guncs:
             Arrays.settings_dict.update(meta_dict)
             Arrays.manga_list.append(manga_title)
 
-            with open(Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+            with open('manga_notification_settings.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(Arrays.settings_dict, indent=4))
 
     @staticmethod

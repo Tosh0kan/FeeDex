@@ -21,7 +21,7 @@ class Arrays:
 class Guncs:
     @staticmethod
     def load_settings() -> None:
-        with open(main.Guncs.resource_path('manga_notification_settings.json'), 'r', encoding='utf-8') as f:
+        with open('manga_notification_settings.json', 'r', encoding='utf-8') as f:
             Arrays.settings_dict = json.loads(f.read())
 
     @staticmethod
@@ -36,25 +36,28 @@ class Guncs:
         }
 
         all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items() if "metadata" not in key]
-        async with httpx.AsyncClient() as client:
-            tasks = (client.get(url, follow_redirects=True, params=params, timeout=10) for url in all_urls)
-            reqs = await asyncio.gather(*tasks)
 
-        # The inner loop gets the title of the manga from the API to use as the
-        # key of the manga's key-value pair. The value is all data about the newest
-        # chapter.
-        for req in reqs:
-            try:
-                if req.status_code == 200:
-                    for key, value in Arrays.settings_dict.items():
-                        if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
-                            title = key
-                            break
-                    ap_items = req.json()["data"][0]
-                    Arrays.updated_status.setdefault(title, ap_items)
+        while len(all_urls) > 0:
+            async with httpx.AsyncClient() as client:
+                tasks = (client.get(url, follow_redirects=True, params=params, timeout=10) for url in all_urls)
+                reqs = await asyncio.gather(*tasks, return_exceptions=True)
 
-            except Exception:
-                return
+            # The inner loop gets the title of the manga from the API to use as the
+            # key of the manga's key-value pair. The value is all data about the newest
+            # chapter.
+            for req in reqs:
+                try:
+                    if req.status_code == 200:
+                        for key, value in Arrays.settings_dict.items():
+                            if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
+                                title = key
+                                break
+                        ap_items = req.json()["data"][0]
+                        Arrays.updated_status.setdefault(title, ap_items)
+                        all_urls.remove(req.url)
+
+                except Exception:
+                    continue
 
     @staticmethod
     def toaster(series_title: str, ch_no: str, ch_title: str, ch_id: str) -> None:
@@ -108,7 +111,7 @@ class Guncs:
 
         Arrays.settings_dict.update(new_settings)
 
-        with open(main.Guncs.resource_path('manga_notification_settings.json'), 'w', encoding='utf-8') as f:
+        with open('manga_notification_settings.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(Arrays.settings_dict, indent=4))
 
     @staticmethod
@@ -165,12 +168,13 @@ class Guncs:
         asyncio.run(Guncs.sonar())
 
         while True:
-            if dt.now(pytz.utc) >= sonar_timer + td(minutes=30):
+            if dt.now(pytz.utc) >= sonar_timer + td(minutes=15):
                 asyncio.run(Guncs.sonar())
                 Guncs.new_ch_check()
                 Guncs.save_settings(Arrays.updated_status)
+                sonar_timer = dt.now(pytz.utc)
 
-            if dt.now(pytz.utc) >= last_version_check + td(days=30):
+            if dt.now(pytz.utc) >= last_version_check + td(hours=24):
                 Guncs.new_version_check()
 
 
