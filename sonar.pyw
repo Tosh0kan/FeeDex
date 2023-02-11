@@ -54,7 +54,7 @@ class Guncs:
                                 break
                         ap_items = req.json()["data"][0]
                         Arrays.updated_status.setdefault(title, ap_items)
-                        all_urls.remove(req.url)
+                        all_urls.remove(str(req.url).split('?')[0])
 
                 except Exception:
                     continue
