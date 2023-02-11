@@ -121,7 +121,7 @@ class Guncs:
         executed the check.
         """
         def get_latest_version() -> str:
-            r_vers = httpx.get('https://github.com/Tosh0kan/MangaDexFeed/releases')
+            r_vers = httpx.get('https://github.com/Tosh0kan/FeeDex/releases')
             active_page = BeautifulSoup(r_vers.text, 'lxml')
             current_version = active_page.find_all('h2', class_='sr-only')[0].text
             return current_version
@@ -139,7 +139,7 @@ class Guncs:
                 app_id="MangaDex Feed",
                 title="MangaDex Feed has been updated!",
                 msg=f"Version {version} has been released!",
-                launch=f"https://github.com/Tosh0kan/MangaDexFeed/releases/tag/{version}"
+                launch=f"https://github.com/Tosh0kan/FeeDex/releases/tag/{version}"
             )
             toast.show()
 
@@ -166,9 +166,11 @@ class Guncs:
         Guncs.load_settings()
         last_version_check = dt.strptime(Arrays.settings_dict["metadata"]["lastCheck"], '%Y-%m-%dT%H:%M:%S%z')
         asyncio.run(Guncs.sonar())
+        Guncs.new_ch_check()
+        Guncs.save_settings(Arrays.updated_status)
 
         while True:
-            if dt.now(pytz.utc) >= sonar_timer + td(minutes=15):
+            if dt.now(pytz.utc) >= sonar_timer + td(minutes=10):
                 asyncio.run(Guncs.sonar())
                 Guncs.new_ch_check()
                 Guncs.save_settings(Arrays.updated_status)
