@@ -168,6 +168,7 @@ class Guncs:
         asyncio.run(Guncs.sonar())
         Guncs.new_ch_check()
         Guncs.save_settings(Arrays.updated_status)
+        Guncs.new_version_check()
 
         while True:
             if dt.now(pytz.utc) >= sonar_timer + td(minutes=10):

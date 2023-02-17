@@ -36,5 +36,9 @@ The program that will check for new chapters of subscribed mangas and throw noti
 - Feature to pull list of mangas to subscribe straight from a user's follows.
 - Better G/UI. 
 
+### Current Limitations
+- When scanlators upload multiple chapters at once, the program will only detect the newest, so make sure that you check if that hasn't happened.
+- Sometimes, when a series scanlation is really far behind the raws, the scanlation group or someone else will uploaded one of the newest chapters, or one of the volumes *omakes*, creating a huge gap. At the present time, this program will keep referring only to that higher chapter, even if others have been posted on MDex after it.
+
 ## Contributing
 I welcome any contributions to this project, as long as the instructions contained in the code by way of comments and function's descriptions are followed; most pressingly, though, is a better UI or way of implementing a menu than how I did it.
