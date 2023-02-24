@@ -24,7 +24,7 @@ When you're using this program for the first time, the first thing you need to d
 Once you run the program, a terminal/console window will show up. I made the menu and prompts to be as succint and clear, and the least error-prone as possible, so just read what the window shows to you and act accordingly. After doing it, in the folder that the program is located, a JSON name `manga_notification_settings.json` will appear. Make sure you leave that alone, otherwise you can mess with it in such a way that for the program to work again, you'll have to delete the JSON and start over, as if it's the first time.
 
 ### Listening for Updates
-The program that will check for new chapters of subscribed mangas and throw notifications when they are updated, is `FeeDex Sonar.exe`. Unlike with main.exe, sonar will not create a terminal/console window. It runs completely on the background, so to initialize it, you need to manually start the program, or schedule Windows to run it on startup by doing the following steps:
+The program that will check for new chapters of subscribed mangas and throw notifications when they are updated, is `FeeDex Sonar.exe`. Unlike with `FeeDex Main.exe`, sonar will not create a terminal/console window. It runs completely on the background, so to initialize it, you need to manually start the program, or schedule Windows to run it on startup by doing the following steps:
 
 1. Right click `FeeDex Sonar.exe`, copy, then right click an empty part of the folder and then click "paste as a shortcut";
 2. Cut (Ctrl + X) the shortcut;
