@@ -7,16 +7,23 @@ from datetime import datetime as dt
 
 class Settings:
     def __init__(self):
-        self.dict = Settings.load_settings(self)
+        self.settings = Settings.load_settings(self)
+        self.subs = Settings.load_subs(self)
 
     def load_settings(self) -> dict:
         # TODO change json before building
-        with open('manga_notification_settings_test.json', 'r', encoding='utf-8') as f:
+        with open('settings_test.json', 'r', encoding='utf-8') as f:
             settings_dict = json.loads(f.read())
 
         return settings_dict
 
-    def save_settings(self: dict, manga_title: str = '', manga_dict: dict = None, first_time: bool = False, update_only: bool = True, delete_entry: bool = False):
+    def load_subs(self) -> dict:
+        with open('manga_subs.json', 'r', encoding='utf-8') as f:
+            manga_subs = json.loads(f.read())
+
+        return manga_subs
+
+    def save_settings(self, manga_title: str = None, manga_dict: dict = None, first_time: bool = False, update_only: bool = True, delete_entry: bool = False):
         """
             Creates the inner dicts in the settings JSON, and also creates the JSON proper
             in case it's the firt time using. It has options to only update previously subbed
@@ -29,26 +36,30 @@ class Settings:
             }
         }
 
+        prefs_dict = {"translatedLanguages"
+            
+        }
+
         if first_time:
             self.dict.update(manga_dict)
             self.dict.update(meta_dict)
 
         # TODO change json before building
-            with open('manga_notification_settings_test.json', 'w', encoding='utf-8') as f:
+            with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(self.dict, indent=4))
 
         elif update_only:
             self.dict.update(manga_dict)
 
         # TODO change json before building
-            with open('manga_notification_settings_test.json', 'w', encoding='utf-8') as f:
+            with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(self.dict, indent=4))
 
         elif delete_entry:
             self.dict.pop(manga_title)
 
         # TODO change json before building
-            with open('manga_notification_settings_test.json', 'w', encoding='utf-8') as f:
+            with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(self.dict, indent=4))
 
         else:
@@ -57,7 +68,7 @@ class Settings:
             self.dict.update(meta_dict)
 
         # TODO change json before building
-            with open('manga_notification_settings_test.json', 'w', encoding='utf-8') as f:
+            with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(self.dict, indent=4))
 
 
