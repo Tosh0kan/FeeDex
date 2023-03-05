@@ -24,36 +24,41 @@ class Settings:
 
         return manga_subs
 
-    def save_settings(self, lang_pref: list = None):
+    def save_settings(self, lang_pref: str = None):
         settings_dict = {
             "metadata": {
                 "version": __version__,
                 "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
             },
-            "translatedLanguages[]": lang_pref
+            "translatedLanguages[]": []
         }
+        settings_dict['translatedLanguages[]'].append(lang_pref)
+        self.settings.update(settings_dict)
 
-    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: dict = None, first_time: bool = False, update_only: bool = True, delete_entry: bool = False):
-        """
-            Creates the inner dicts in the settings JSON, and also creates the JSON proper
-            in case it's the firt time using. It has options to only update previously subbed
-            mangas with new info, add new subbed manga, as well as removing them.
-        """
+        with open('settings_test.json', 'w') as f:
+            f.write(json.dumps(self.settings, indent=4))
 
+    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: dict = None, first_time: bool = False, update: bool = True, delete_entry: bool = True):
         if first_time:
-            self.subs.update(manga_dict)
             # TEST vvvvvvvvvv
-            for key in self.subs.keys():
-                self.subs[key].update({'preferredGroup': []})
-                self.subs[key]["preferredGroup"].append(preferr_group)
+            for key in manga_dict.keys():
+                manga_dict[key].update({'preferredGroup': []})
+                manga_dict[key]["preferredGroup"].append(preferr_group)
             # TEST ^^^^^^^^^^
+            self.subs.update(manga_dict)
 
         # TODO change json before building
             with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(self.subs, indent=4))
 
-        elif update_only:
-            self.subs.update(manga_dict)
+        elif update:
+            if preferr_group is not None:
+                for key in manga_dict.keys():
+                    manga_dict[key].update({'preferredGroup': []})
+                    manga_dict[key]["preferredGroup"].append(preferr_group)
+
+            else:
+                self.subs.update(manga_dict)
 
         # TODO change json before building
             with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
@@ -61,14 +66,6 @@ class Settings:
 
         elif delete_entry:
             self.subs.pop(manga_title)
-
-        # TODO change json before building
-            with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
-                f.write(json.dumps(self.subs, indent=4))
-
-        else:
-            self.subs.pop('metadata')
-            self.subs.update(manga_dict)
 
         # TODO change json before building
             with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
