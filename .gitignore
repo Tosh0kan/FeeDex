@@ -3,3 +3,5 @@
 venv
 bin
 *.txt
+*pycache*
+*proto*
