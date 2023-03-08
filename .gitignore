@@ -5,3 +5,6 @@ bin
 *.txt
 *pycache*
 *proto*
+build
+gitignore
+*vscode*
