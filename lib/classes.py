@@ -32,18 +32,20 @@ class Settings:
             },
             "translatedLanguages[]": []
         }
-        settings_dict['translatedLanguages[]'].append(lang_pref)
+        if lang_pref is not None:
+            settings_dict['translatedLanguages[]'].append(lang_pref)
         self.settings.update(settings_dict)
 
         with open('settings_test.json', 'w') as f:
             f.write(json.dumps(self.settings, indent=4))
 
-    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: dict = None, first_time: bool = False, update: bool = True, delete_entry: bool = True):
+    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: str = None, first_time: bool = False, update: bool = True, delete_entry: bool = True):
         if first_time:
             # TEST vvvvvvvvvv
             for key in manga_dict.keys():
-                manga_dict[key].update({'preferredGroup': []})
-                manga_dict[key]["preferredGroup"].append(preferr_group)
+                manga_dict[key].update({'favGroup': ""})
+                if preferr_group is not None:
+                    manga_dict[key]["favGroup"] = preferr_group
             # TEST ^^^^^^^^^^
             self.subs.update(manga_dict)
 
@@ -54,8 +56,10 @@ class Settings:
         elif update:
             if preferr_group is not None:
                 for key in manga_dict.keys():
-                    manga_dict[key].update({'preferredGroup': []})
-                    manga_dict[key]["preferredGroup"].append(preferr_group)
+                    if key == manga_title:
+                        # manga_dict[key].update({'favGroup': []})
+                        manga_dict[key]["favGroup"] = preferr_group
+                        break
 
             else:
                 self.subs.update(manga_dict)
@@ -75,8 +79,9 @@ class Settings:
 class Mangas:
     registry_ = []
 
-    def __init__(self, series: str, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = None):
-        self.series = series
+    def __init__(self, series_title: str, series_id: str, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = ''):
+        self.series_title = series_title
+        self.series_id = series_id
         self.ch_no = ch_no
         self.ch_title = ch_title
         self.ch_id = ch_id
@@ -85,13 +90,14 @@ class Mangas:
         Mangas.registry_.append(self)
 
     def __repr__(self) -> str:
-        return "Manga('{}', '{}', '{}', '{}')".format(self.series, self.ch_no, self.ch_title, self.ch_id)
+        return "Manga('{}','{}', '{}', '{}', '{}', '{}', '{}')".format(self.series_title, self.series_id, self.ch_no, self.ch_title, self.ch_id, self.scan_group, self.latest_date)
 
     def __str__(self) -> str:
-        return "{}, Latest Upload: Ch {}, {}, {}".format(self.series, self.ch_no, self.ch_title, self.latest_date)
+        return "{}, Latest Upload: Ch {}, {}, {}".format(self.series_title, self.ch_no, self.ch_title, self.latest_date)
 
     def update_instance(self, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = None):
         self.ch_no = ch_no
         self.ch_title = ch_title
         self.ch_id = ch_id
         self.latest_date = latest_date
+        self.scan_group = scan_group
