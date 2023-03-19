@@ -30,10 +30,10 @@ class Settings:
                 "version": __version__,
                 "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
             },
-            "translatedLanguages[]": []
+            "favLanguages": []
         }
         if lang_pref is not None:
-            settings_dict['translatedLanguages[]'].append(lang_pref)
+            settings_dict['favLanguages'].append(lang_pref)
         self.settings.update(settings_dict)
 
         with open('settings_test.json', 'w') as f:
