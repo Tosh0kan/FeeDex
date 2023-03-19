@@ -24,16 +24,18 @@ class Settings:
 
         return manga_subs
 
-    def save_settings(self, lang_pref: str = None):
+    def save_settings(self, update_dict: dict, lang_pref: str = None):
+        # TODO add method to remove favLanguages
         settings_dict = {
             "metadata": {
                 "version": __version__,
                 "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
             },
-            "favLanguages": []
+            "favLanguages": ["en"]
         }
         if lang_pref is not None:
             settings_dict['favLanguages'].append(lang_pref)
+        settings_dict.update(update_dict)
         self.settings.update(settings_dict)
 
         with open('settings_test.json', 'w') as f:

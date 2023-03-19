@@ -44,6 +44,7 @@ def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict
 
 
 async def sonar(settings_obj) -> dict:
+    # TODO add while len(all_urls) > 0 loop
     all_urls = []
     for instance in Mangas.registry_:
         latest_date = instance.latest_date.split('+')[0]
@@ -92,3 +93,45 @@ def toaster(sonar_echo: list) -> None:
         )
         toast.show()
         sleep(0.20)
+
+def new_version_check(settings_obj) -> None:
+    def get_latest_version() -> str:
+        while True:
+            try:
+                remote_ver = httpx.get('https://github.com/Tosh0kan/FeeDex/releases')
+                break
+            except Exception:
+                sleep(1)
+                continue
+        active_page = BeautifulSoup(remote_ver.text, 'lxml')
+        current_ver = active_page.find_all('h2', class_='sr-only')[0].text
+        return current_ver
+
+    def version_comparer(remote: str, local: str) -> bool:
+        remote_split = remote.split('.')
+        local_split = local.split('.')
+        remote = int(''.join(remote_split))
+        local = int(''.join(local_split))
+        return remote > local
+
+    def toaster(version: str) -> None:
+        toast = Notification(
+            app_id="FeeDex",
+            title="FeeDex has been updated!",
+            msg = f"Version {version} has been released.",
+            launch=f"https://github.com/Tosh0kan/FeeDex/releases/tag/{version}"
+        )
+        toast.show
+
+    repo_ver = get_latest_version()
+    bool_result = version_comparer(repo_ver, __version__)
+
+    if bool_result:
+        toaster(repo_ver)
+
+    update_dict = {
+        "metadata": {
+            "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
+        }
+    }
+    settings_obj.save_settings(update_dict)
