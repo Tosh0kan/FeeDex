@@ -3,14 +3,12 @@ from .classes import *
 
 import re
 import pytz
-import json
 import httpx
 import asyncio
 from time import sleep
 from bs4 import BeautifulSoup
 from winotify import Notification
 from datetime import datetime as dt
-from datetime import timedelta as td
 
 
 def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict]:
