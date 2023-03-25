@@ -1,4 +1,4 @@
-from .__init__ import __version__
+from lib.__init__ import __version__
 
 import pytz
 import json
@@ -97,7 +97,8 @@ class Mangas:
     def __str__(self) -> str:
         return "{}, Latest Upload: Ch {}, {}, {}".format(self.series_title, self.ch_no, self.ch_title, self.latest_date)
 
-    def update_instance(self, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = None):
+    def update_instances(self, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = None): # TODO change to work with sonar_echo
+        # HACK add provision (like a list) to check for already updated series and skip the rest, since only the newest chapter needs to be commited to object and to JSON
         self.ch_no = ch_no
         self.ch_title = ch_title
         self.ch_id = ch_id
