@@ -44,11 +44,7 @@ def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict
 async def sonar(settings_obj, mangas_registry: list) -> list:
     all_urls = []
     for instance in mangas_registry:
-        latest_date_minute = int(instance.latest_date.split('+')[0].split(':')[-1]) + 1
-        latest_date_list = instance.latest_date.split('+')[0].split(':')
-        latest_date_list[-1] = str(latest_date_minute).zfill(2)
-        latest_date = ":".join(latest_date_list)
-
+        latest_date = instance.latest_date.split('+')[0]
         url_ = f'https://api.mangadex.org/chapter?manga={instance.series_id}&publishAtSince={latest_date}&order[chapter]=desc'
         if instance.scan_group != "":
             url_ += '&groups[]=' + instance.scan_group
@@ -66,9 +62,11 @@ async def sonar(settings_obj, mangas_registry: list) -> list:
                 if req.status_code == 200:
                     output_.append(req.json()["data"])
                     for instance in mangas_registry:
-                        if instance.series_id == req.json()["data"]["relationships"][1]["id"]:
+                        if instance.series_id == req.json()["data"][0]["relationships"][1]["id"]:
                             all_urls.remove(str(req.url))
                             break
+                    else:
+                        continue
             except Exception:
                 continue
 
@@ -76,7 +74,10 @@ async def sonar(settings_obj, mangas_registry: list) -> list:
     new_output = []
     for series in output_:
         for chapter in series:
-            new_output.append(chapter)
+            if chapter == series[-1]:
+                continue
+            else:
+                new_output.append(chapter)
     output_ = new_output
     return output_
 
@@ -89,6 +90,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
             msg="Check your Actions Center for a full list!"
         )
         toast.show()
+        sleep(0.20)
 
     for chapter in sonar_echo:
         for manga in mangas_registry:
