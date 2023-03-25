@@ -1,5 +1,5 @@
-from .__init__ import __version__
-from .classes import *
+from lib.__init__ import __version__
+from lib.classes import *
 
 import re
 import pytz
@@ -41,21 +41,36 @@ def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict
     return series, ch_no, ch_title, ch_id, latest_date, {series: init_state}
 
 
-async def sonar(settings_obj) -> dict:
-    # TODO add while len(all_urls) > 0 loop
+async def sonar(settings_obj, mangas_registry: list) -> list:
     all_urls = []
-    for instance in Mangas.registry_:
-        latest_date = instance.latest_date.split('+')[0]
+    for instance in mangas_registry:
+        latest_date_minute = int(instance.latest_date.split('+')[0].split(':')[-1]) + 1
+        latest_date_list = instance.latest_date.split('+')[0].split(':')
+        latest_date_list[-1] = str(latest_date_minute).zfill(2)
+        latest_date = ":".join(latest_date_list)
+
         url_ = f'https://api.mangadex.org/chapter?manga={instance.series_id}&publishAtSince={latest_date}&order[chapter]=desc'
         if instance.scan_group != "":
             url_ += '&groups[]=' + instance.scan_group
         for lang in settings_obj["favLanguages"]:
             url_ += f'&translatedLanguage[]={lang}'
         all_urls.append(url_)
+    while len(all_urls) > 0:
+        async with httpx.AsyncClient() as client:
+            tasks = (client.get(url, follow_redirects=True, timeout=10) for url in all_urls)
+            reqs = await asyncio.gather(*tasks)
 
-    async with httpx.AsyncClient() as client:
-        tasks = (client.get(url, follow_redirects=True, timeout=10) for url in all_urls)
-        reqs = await asyncio.gather(*tasks)
+        output_ = []
+        for req in reqs:
+            try:
+                if req.status_code == 200:
+                    output_.append(req.json()["data"])
+                    for instance in mangas_registry:
+                        if instance.series_id == req.json()["data"]["relationships"][1]["id"]:
+                            all_urls.remove(str(req.url))
+                            break
+            except Exception:
+                continue
 
     output_ = [req.json()["data"] for req in reqs]
     new_output = []
@@ -66,7 +81,7 @@ async def sonar(settings_obj) -> dict:
     return output_
 
 
-def toaster(sonar_echo: list) -> None:
+def toaster(sonar_echo: list, mangas_registry: list) -> None:
     if len(sonar_echo) > 1:
         toast = Notification(
             app_id="FeeDex",
@@ -76,7 +91,7 @@ def toaster(sonar_echo: list) -> None:
         toast.show()
 
     for chapter in sonar_echo:
-        for manga in Mangas.registry_:
+        for manga in mangas_registry:
             if chapter["relationships"][1]["id"] == manga.series_id:
                 series_title = manga.series_title
         ch_no = chapter["attributes"]["chapter"]
