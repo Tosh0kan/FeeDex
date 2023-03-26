@@ -41,7 +41,13 @@ def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict
     return series, ch_no, ch_title, ch_id, latest_date, {series: init_state}
 
 
-async def sonar(settings_obj, mangas_registry: list) -> list:
+async def sonar(settings_set, mangas_registry: list) -> list:
+    """
+    The function that interacts with the API. Takes in the settings attribute of instance
+    the Settings() (usually settings.settings) class and the Mangas.registry_ to generate
+    urls that will ping the api domain, generating a list with the dicts of all the chapters
+    published since the last one.
+    """
     all_urls = []
     for instance in mangas_registry:
         latest_date_minute = int(instance.latest_date.split('+')[0].split(':')[-1]) + 1
@@ -52,7 +58,7 @@ async def sonar(settings_obj, mangas_registry: list) -> list:
         url_ = f'https://api.mangadex.org/chapter?manga={instance.series_id}&publishAtSince={latest_date}&order[chapter]=desc'
         if instance.scan_group != "":
             url_ += '&groups[]=' + instance.scan_group
-        for lang in settings_obj["favLanguages"]:
+        for lang in settings_set["favLanguages"]:
             url_ += f'&translatedLanguage[]={lang}'
         all_urls.append(url_)
     while len(all_urls) > 0:
@@ -80,8 +86,8 @@ async def sonar(settings_obj, mangas_registry: list) -> list:
     for series in output_:
         for chapter in series:
             new_output.append(chapter)
-    output_ = new_output
-    return output_
+    sonar_echo = new_output
+    return sonar_echo
 
 
 def toaster(sonar_echo: list, mangas_registry: list) -> None:
