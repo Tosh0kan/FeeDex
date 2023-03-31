@@ -68,7 +68,7 @@ async def sonar(settings_set, mangas_registry: list) -> list:
 
         output_ = []
         for req in reqs:
-            debug_req = req.json()
+            debug_req = req.json()  # TODO remove before build
             try:
                 if req.status_code == 200:
                     output_.append(req.json()["data"])
@@ -117,7 +117,38 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         toast.show()
         sleep(0.20)
 
-def new_version_check(settings_obj) -> None:
+
+def ping_jokey(sonar_echo, mangas_registry, settings_obj: Settings) -> None:
+        """
+        Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
+        and the Mangas.registry_ to process the sonar echo, generate the toasts if there any new
+        chapters, as well as update the Mangas() class instances inside registry_ and update the
+        manga.subs.json file as well with the latest chapter.
+        """
+        if len(sonar_echo) > 0:
+            toaster(sonar_echo, mangas_registry)
+            skip_list = []
+            for chapter in sonar_echo:
+                for manga in mangas_registry:
+                    if manga.series_id in skip_list:
+                        continue
+                    elif manga.series_id == chapter["relationships"][1]["id"]:
+                        manga.update_instance(sonar_echo[sonar_echo.index(chapter)])
+                        skip_list.append(manga.series_id)
+                        update_dict = {manga.series_title: chapter}
+                        if manga.scan_group == "":
+                            update_dict[manga.series_title]["favGroup"] = ""
+                            settings_obj.save_subs(manga_title=manga.series_title, manga_dict=update_dict)
+                            break
+                        else:
+                            update_dict[manga.series_title]["favGroup"] = manga.scan_group
+                            settings_obj.save_subs(manga_title=manga.series_title, manga_dict=update_dict)
+                            break
+        else:
+            pass
+
+
+def new_version_check(settings_obj: Settings) -> None:
     def get_latest_version() -> str:
         while True:
             try:
