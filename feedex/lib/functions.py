@@ -95,7 +95,8 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         toast = Notification(
             app_id="FeeDex",
             title="Multiple Updates Inbound!",
-            msg="Check your Actions Center for a full list!"
+            msg="Check your Actions Center for a full list!",
+            duration="long"
         )
         toast.show()
         sleep(0.20)
@@ -118,7 +119,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         sleep(0.20)
 
 
-def ping_jokey(sonar_echo, mangas_registry, settings_obj: Settings) -> None:
+def ping_jokey(sonar_echo, mangas_registry, settings_obj) -> None:
     """
     Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
     and the Mangas.registry_ to process the sonar echo, generate the toasts if there any new
@@ -148,8 +149,9 @@ def ping_jokey(sonar_echo, mangas_registry, settings_obj: Settings) -> None:
         pass
 
 
-def new_version_check(settings_obj: Settings) -> None:
+def new_version_check(settings_obj) -> None:
     def get_latest_version() -> str:
+        # TODO change all the names of this function so they are intuitive with repo_ver
         while True:
             try:
                 remote_ver = httpx.get('https://github.com/Tosh0kan/FeeDex/releases')
@@ -175,7 +177,7 @@ def new_version_check(settings_obj: Settings) -> None:
             msg=f"Version {version} has been released.",
             launch=f"https://github.com/Tosh0kan/FeeDex/releases/tag/{version}"
         )
-        toast.show
+        toast.show()
 
     repo_ver = get_latest_version()
     bool_result = version_comparer(repo_ver, __version__)
