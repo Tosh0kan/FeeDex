@@ -1,4 +1,3 @@
-from .__init__ import __version__
 from .classes import *
 
 import re
@@ -9,6 +8,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from winotify import Notification
 from datetime import datetime as dt
+from datetime import timedelta as td
 
 
 def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict]:
@@ -50,10 +50,9 @@ async def sonar(settings_set, mangas_registry: list) -> list:
     """
     all_urls = []
     for instance in mangas_registry:
-        latest_date_minute = int(instance.latest_date.split('+')[0].split(':')[-1]) + 1
-        latest_date_list = instance.latest_date.split('+')[0].split(':')
-        latest_date_list[-1] = str(latest_date_minute).zfill(2)
-        latest_date = ":".join(latest_date_list)
+        latest_date_dt = dt.strptime(instance.latest_date, '%Y-%m-%dT%H:%M:%S%z')
+        latest_date_dt = latest_date_dt + td(seconds=1)
+        latest_date = latest_date_dt.strftime('%Y-%m-%dT%H:%M:%S%z')
 
         url_ = f'https://api.mangadex.org/chapter?manga={instance.series_id}&publishAtSince={latest_date}&order[chapter]=desc'
         if instance.scan_group != "":
@@ -122,9 +121,9 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
 def ping_jokey(sonar_echo, mangas_registry, settings_obj) -> None:
     """
     Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
-    and the Mangas.registry_ to process the sonar echo, generate the toasts if there any new
+    and the Mangas.registry_ to process the sonar echo, generate the toasts if there are any new
     chapters, as well as update the Mangas() class instances inside registry_ and update the
-    manga.subs.json file as well with the latest chapter.
+    manga_subs.json file as well with the latest chapter.
     """
     if len(sonar_echo) > 0:
         toaster(sonar_echo, mangas_registry)
