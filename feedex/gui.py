@@ -69,7 +69,7 @@ class MngSubsWin(QDialog):
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.container_widget)
-
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.delete_button = QPushButton("Delete\nSubscriptions")
         self.delete_button.clicked.connect(self.delete_subs)
         self.delete_button.setFixedSize(85, 45)
@@ -109,16 +109,34 @@ class FeeDexWindow(QMainWindow):
         self.unsub_button.setFixedSize(85, 55)
         self.unsub_button.clicked.connect(self.manage_subs)
 
+        self.options_button = QPushButton("Options...")
+        self.options_button.setFixedSize(85, 55)
+        self.options_button.clicked.connect(self.manage_options)
+
         self.current_subs = QListView()
 
-        subs_buttons = QVBoxLayout()
-        subs_buttons.addWidget(self.sub_button)
-        subs_buttons.addWidget(self.unsub_button)
-        subs_buttons.setAlignment(Qt.AlignTop)
+        self.view_layout = QHBoxLayout()
+        self.view_layout.addWidget(self.current_subs)
+        self.view_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+
+        self.container_widget = QWidget()
+        self.container_widget.setLayout(self.view_layout)
+
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area.setWidget(self.container_widget)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setWidgetResizable(True)
+
+        buttons_layout = QVBoxLayout()
+        buttons_layout.addWidget(self.sub_button)
+        buttons_layout.addWidget(self.unsub_button)
+        buttons_layout.addWidget(self.options_button)
+        buttons_layout.setAlignment(Qt.AlignTop)
 
         parent_layout = QHBoxLayout()
-        parent_layout.addWidget(self.current_subs)
-        parent_layout.addLayout(subs_buttons)
+        parent_layout.addWidget(self.scroll_area)
+        parent_layout.addLayout(buttons_layout)
 
         container = QWidget()
         container.setLayout(parent_layout)
@@ -132,6 +150,9 @@ class FeeDexWindow(QMainWindow):
     def manage_subs(self):
         mng_subs = MngSubsWin(9, self)
         mng_subs.exec()
+
+    def manage_options(self):
+        pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
