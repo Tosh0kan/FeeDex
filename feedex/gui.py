@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea
+from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea,QFrame
 
 
 class AddSubWin(QDialog):
@@ -70,6 +70,7 @@ class MngSubsWin(QDialog):
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.container_widget)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         self.delete_button = QPushButton("Delete\nSubscriptions")
         self.delete_button.clicked.connect(self.delete_subs)
         self.delete_button.setFixedSize(85, 45)
@@ -81,7 +82,7 @@ class MngSubsWin(QDialog):
         self.outer_layout.addWidget(self.scroll_area)
         self.outer_layout.addLayout(self.delete_button_layout)
 
-        self.setMinimumSize(QSize(300, 24 * self.inner_layout.rowCount()))
+        # self.setMinimumSize(QSize(300, 24 * self.inner_layout.rowCount()))
         self.setLayout(self.outer_layout)
 
     def delete_subs(self):
@@ -99,7 +100,7 @@ class FeeDexWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("FeeDex Manager")
-        self.setMinimumSize(QSize(800, 600))
+        self.setMinimumSize(QSize(400, 200))
 
         self.sub_button = QPushButton("Add subs...")
         self.sub_button.setFixedSize(85, 55)
@@ -118,15 +119,16 @@ class FeeDexWindow(QMainWindow):
         self.view_layout = QHBoxLayout()
         self.view_layout.addWidget(self.current_subs)
         self.view_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.view_layout.setContentsMargins(1, 1, 1, 1)
 
         self.container_widget = QWidget()
         self.container_widget.setLayout(self.view_layout)
 
         self.scroll_area = QScrollArea()
-        self.scroll_area.setContentsMargins(0, 0, 0, 0)
         self.scroll_area.setWidget(self.container_widget)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameStyle(QFrame.NoFrame)
 
         buttons_layout = QVBoxLayout()
         buttons_layout.addWidget(self.sub_button)
