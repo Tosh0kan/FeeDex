@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea,QFrame
+from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame
 
 
 class AddSubWin(QDialog):
@@ -100,7 +100,7 @@ class FeeDexWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("FeeDex Manager")
-        self.setMinimumSize(QSize(400, 200))
+        self.setMinimumSize(QSize(800, 600))
 
         self.sub_button = QPushButton("Add subs...")
         self.sub_button.setFixedSize(85, 55)
@@ -111,7 +111,7 @@ class FeeDexWindow(QMainWindow):
         self.unsub_button.clicked.connect(self.manage_subs)
 
         self.options_button = QPushButton("Options...")
-        self.options_button.setFixedSize(85, 55)
+        self.options_button.setFixedSize(85, 35)
         self.options_button.clicked.connect(self.manage_options)
 
         self.current_subs = QListView()
