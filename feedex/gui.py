@@ -41,6 +41,7 @@ class MngSubsWin(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Manage Subs...")
+        self.button_state = 0
 
         lorem_ipsum = [
             "Lorem ipsum dolor sit amet",
@@ -58,9 +59,10 @@ class MngSubsWin(QDialog):
         self.inner_layout = QFormLayout()
 
         for e in range(num):
-            self.checkbox = QCheckBox()
-            self.series_info = QLabel(lorem_ipsum[e])
-            self.inner_layout.addRow(self.checkbox, self.series_info)
+            checkbox = QCheckBox()
+            checkbox.toggled.connect(lambda chk: self.button_state_change(chk))
+            series_info = QLabel(lorem_ipsum[e])
+            self.inner_layout.addRow(checkbox, series_info)
 
         self.inner_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
 
@@ -72,6 +74,7 @@ class MngSubsWin(QDialog):
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.delete_button = QPushButton("Delete\nSubscriptions")
+        self.delete_button.setEnabled(False)
         self.delete_button.clicked.connect(self.delete_subs)
         self.delete_button.setFixedSize(85, 45)
         self.delete_button_layout = QVBoxLayout()
@@ -92,7 +95,22 @@ class MngSubsWin(QDialog):
             if checkbox.isChecked():
                 label = self.inner_layout.itemAt(row, QFormLayout.FieldRole).widget()
                 to_delete.append(label)
+        for widget in to_delete:
+            self.inner_layout.removeRow(widget)
         self.close()
+
+    def button_state_change(self, chk):
+        if not self.delete_button.isEnabled():
+            self.button_state += 1
+        elif self.delete_button.isEnabled() and chk:
+            self.button_state += 1
+        elif self.delete_button.isEnabled() and not chk:
+            self.button_state -= 1
+
+        if self.button_state > 0:
+            self.delete_button.setEnabled(True)
+        else:
+            self.delete_button.setEnabled(False)
 
 
 class FeeDexWindow(QMainWindow):
