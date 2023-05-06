@@ -11,34 +11,79 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 
-def get_inital_manga_state(manga_url: str) -> tuple[str, str, str, str, dt, dict]:
+def get_inital_manga_state(manga_urls: list = None, list_url: list = None) -> None:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
     """
-    manga_id = re.split(r'.+title/([^/]+).+', manga_url)
-    manga_id = ''.join(manga_id)
-    series = httpx.get(
-        f'https://api.mangadex.org/manga/{manga_id}',
-        follow_redirects=True
-    )
+    async def manga_proccer(url_list) -> dict:
+        if len(url_list) == 1:
+            series_id = re.split(r'.+title/([^/]+).+', url_list[0])
+            series_id = ''.join(series_id)
+            series = httpx.get(
+                f'https://api.mangadex.org/manga/{series_id}',
+                follow_redirects=True
+            )
 
-    init_state = httpx.get(
-        f'https://api.mangadex.org/manga/{manga_id}/feed',
-        follow_redirects=True,
-        params={
-            "translatedLanguage[]": "en",
-            "order[readableAt]": "desc"
-        }
-    ).json()["data"][0]
+            init_state = httpx.get(
+                f'https://api.mangadex.org/manga/{series_id}/feed',
+                follow_redirects=True,
+                params={
+                    "translatedLanguage[]": "en",
+                    "order[readableAt]": "desc"
+                }
+            ).json()["data"][0]
 
-    series = series.json()['data']['attributes']["title"]["en"]
-    ch_no = init_state['attributes']['chapter']
-    ch_title = init_state['attributes']['title']
-    ch_id = init_state['id']
-    latest_date = dt.strptime(init_state['attributes']['readableAt'], '%Y-%m-%dT%H:%M:%S%z')
+            series_title = series.json()['data']['attributes']["title"]["en"]
 
-    return series, ch_no, ch_title, ch_id, latest_date, {series: init_state}
+            return {series_title: init_state}
+
+        else:
+            title_urls = []
+            feed_urls = []
+            for url in url_list:
+                series_id = re.split(r'.+title/([^/]+).+', url)
+                series_id = ''.join(series_id)
+                title_url = f'https://api.mangadex.org/manga/{series_id}'
+                title_urls.append(title_url) 
+                feed_url = f'https://api.mangadex.org/manga/{series_id}/feed'
+                feed_urls.append(feed_url)
+
+            while len(feed_urls) > 0 and len(title_urls) > 0:
+                async with httpx.AsyncClient() as client:
+                    tasks = (client.get(url, follow_redirects=True, timeout=10) for url in title_urls)
+                    title_reqs = await asyncio.gather(*tasks)
+
+                async with httpx.AsyncClient() as client:
+                    tasks = (client.get(url, follow_redirects=True, timeout=10) for url in feed_urls)
+                    feed_reqs = await asyncio.gather(*tasks)
+
+                init_states = []
+                for title in title_reqs:
+                    try:
+                        if title.status_code == 200:
+                            for feed in feed_reqs:
+                                if title.json()["data"]["id"] == feed.json()["data"][0]["relationships"][1]["id"]:
+                                    init_states.append({title.json()['data']['attributes']["title"]["en"]: feed.json()["data"][0]})
+                                    title_urls.remove(str(title.url))
+                                    feed_urls.remove(str(feed.url))
+                                    break
+                                else:
+                                    continue
+                        else:
+                            continue
+                    except IndexError:
+                        title_urls.remove(str(title.url))
+                        feed_urls.remove(str(feed.url))
+
+            return init_states
+
+    if manga_urls is not None:
+        pass
+
+    else:
+        pass
+
 
 
 async def sonar(settings_set, mangas_registry: list) -> list:
