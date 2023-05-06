@@ -1,14 +1,9 @@
+from lib.classes import *
+from lib.functions import *
+
 import sys
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame
-
-
-class LoremIpsum():
-    registry_ = []
-
-    def __init__(self, name):
-        self.name = name
-        LoremIpsum.registry_.append(self)
 
 
 class AddSubWin(QDialog):
