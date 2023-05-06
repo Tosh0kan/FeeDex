@@ -11,14 +11,14 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 
-def get_inital_manga_state(manga_urls: list = None, list_url: list = None) -> None:
+def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> None:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
     """
-    async def manga_proccer(url_list) -> dict:
+    async def manga_proccer(url_list) -> dict | list:
         if len(url_list) == 1:
-            series_id = re.split(r'.+title/([^/]+).+', url_list[0])
+            series_id = re.split(r'.+title/([^/]+).*', url_list[0])
             series_id = ''.join(series_id)
             series = httpx.get(
                 f'https://api.mangadex.org/manga/{series_id}',
@@ -29,6 +29,7 @@ def get_inital_manga_state(manga_urls: list = None, list_url: list = None) -> No
                 f'https://api.mangadex.org/manga/{series_id}/feed',
                 follow_redirects=True,
                 params={
+                    # TODO change the configuration for preferred language
                     "translatedLanguage[]": "en",
                     "order[readableAt]": "desc"
                 }
@@ -42,7 +43,7 @@ def get_inital_manga_state(manga_urls: list = None, list_url: list = None) -> No
             title_urls = []
             feed_urls = []
             for url in url_list:
-                series_id = re.split(r'.+title/([^/]+).+', url)
+                series_id = re.split(r'.+title/([^/]+).*', url)
                 series_id = ''.join(series_id)
                 title_url = f'https://api.mangadex.org/manga/{series_id}'
                 title_urls.append(title_url) 
@@ -79,10 +80,22 @@ def get_inital_manga_state(manga_urls: list = None, list_url: list = None) -> No
             return init_states
 
     if manga_urls is not None:
-        pass
+        return asyncio.run(manga_proccer(manga_urls))
 
     else:
-        pass
+        procced_list_url = re.split(r'.+list/([^/]*).*', list_url)
+        procced_list_url = ''.join(procced_list_url)
+        list_ids = httpx.get(
+            f'https://api.mangadex.org/list/{procced_list_url}',
+            follow_redirects=True,
+            timeout=10
+        )
+        list_ids = list_ids.json()["data"]["relationships"]
+        list_ids = (e['id'] for e in list_ids)
+        url_list = []
+        for id in list_ids:
+            url_list.append(f'https://mangadex.org/title/{id}/')
+        return asyncio.run(manga_proccer(url_list[0:-1]))
 
 
 
