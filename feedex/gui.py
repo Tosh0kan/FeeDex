@@ -40,7 +40,7 @@ class MngSubsWin(QDialog):
     """
     Logic for the subclass that spawns the QDialog for managing current subscriptions
     """
-    def __init__(self, num, population, parent=None):
+    def __init__(self, population, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Manage Subs...")
@@ -48,13 +48,12 @@ class MngSubsWin(QDialog):
         self.inner_layout = QFormLayout()
         self.population = population
 
-        for e in range(num):
+        for manga in population:
             checkbox = QCheckBox()
             checkbox.toggled.connect(lambda chk: self.button_state_change(chk))
-            try:
-                series_info = QLabel(self.population[e].name)
-            except IndexError:
-                continue
+            series_info = QLabel(f"{manga.series_title}")
+            series_info.mousePressEvent = lambda event, cb=checkbox: cb.setChecked(not cb.isChecked())
+
             self.inner_layout.addRow(checkbox, series_info)
 
         self.inner_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
@@ -89,9 +88,9 @@ class MngSubsWin(QDialog):
                 label = self.inner_layout.itemAt(row, QFormLayout.FieldRole).widget()
                 to_delete.append(label)
         for widget in to_delete:
-            for ipsum in LoremIpsum.registry_:
-                if ipsum.name == widget.text():
-                    LoremIpsum.registry_.remove(ipsum)
+            for manga in Mangas.registry_:
+                if manga.series_title == widget.text():
+                    Mangas.registry_.remove(manga)
             self.inner_layout.removeRow(widget)
         self.close()
 
@@ -164,29 +163,21 @@ class FeeDexWindow(QMainWindow):
         add_win.exec()
 
     def manage_subs(self):
-        mng_subs = MngSubsWin(9, LoremIpsum.registry_, parent=self)
+        mng_subs = MngSubsWin(Mangas.registry_, parent=self)
         mng_subs.exec()
 
     def manage_options(self):
         pass
 
 
-dummy_pop = [
-    "Lorem ipsum dolor sit amet",
-    "consectetur adipiscing elit",
-    "Sed venenatis, ex nec euismod dignissim",
-    "neque eros molestie nunc, nec fermentum",
-    "massa arcu quis enim",
-    "Nullam vestibulum vehicula",
-    "metus ut volutpat",
-    "Morbi pretium felis ut leo eleifend"
-    "eget porttitor nunc sollicitudin",
-    "Fusce ac tincidunt elit"
-]
-
 if __name__ == "__main__":
-    for e in dummy_pop:
-        LoremIpsum(e)
+    settings = Settings()
+    for series, info in settings.subs.items():
+        try:
+            Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
+        except KeyError:
+            Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"])
+
     app = QApplication(sys.argv)
     window = FeeDexWindow()
     window.show()
