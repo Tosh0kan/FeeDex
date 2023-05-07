@@ -81,7 +81,7 @@ class Settings:
 class Mangas:
     registry_ = []
 
-    def __init__(self, series_title: str, series_id: str, ch_no: str, ch_title: str, ch_id: str, latest_date: dt, scan_group: str = ''):
+    def __init__(self, series_title: str, series_id: str, ch_no: str, ch_title: str, ch_id: str, latest_date: str, scan_group: str = ''):
         self.series_title = series_title
         self.series_id = series_id
         self.ch_no = ch_no
@@ -101,4 +101,4 @@ class Mangas:
         self.ch_no = sonar_echo["attributes"]["chapter"]
         self.ch_title = sonar_echo['attributes']["title"]
         self.ch_id = sonar_echo["id"]
-        self.latest_date = dt.strptime(sonar_echo["attributes"]["publishAt"], '%Y-%m-%dT%H:%M:%S%z')
+        self.latest_date = sonar_echo["attributes"]["publishAt"]
