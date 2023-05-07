@@ -46,7 +46,7 @@ def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> Non
                 series_id = re.split(r'.+title/([^/]+).*', url)
                 series_id = ''.join(series_id)
                 title_url = f'https://api.mangadex.org/manga/{series_id}'
-                title_urls.append(title_url) 
+                title_urls.append(title_url)
                 feed_url = f'https://api.mangadex.org/manga/{series_id}/feed'
                 feed_urls.append(feed_url)
 
@@ -98,7 +98,6 @@ def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> Non
         return asyncio.run(manga_proccer(url_list[0:-1]))
 
 
-
 async def sonar(settings_set, mangas_registry: list) -> list:
     """
     The function that interacts with the API. Takes in the settings attribute of instance
@@ -125,7 +124,6 @@ async def sonar(settings_set, mangas_registry: list) -> list:
 
         output_ = []
         for req in reqs:
-            debug_req = req.json()  # TODO remove before build
             try:
                 if req.status_code == 200:
                     output_.append(req.json()["data"])
@@ -176,7 +174,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         sleep(0.20)
 
 
-def ping_jokey(sonar_echo, mangas_registry, settings_obj) -> None:
+def ping_jokey(sonar_echo: list, mangas_registry: list, settings_obj) -> None:
     """
     Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
     and the Mangas.registry_ to process the sonar echo, generate the toasts if there are any new
