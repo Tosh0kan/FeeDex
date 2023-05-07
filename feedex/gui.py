@@ -1,6 +1,7 @@
 from lib.classes import *
 from lib.functions import *
 
+import os
 import sys
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame
@@ -33,7 +34,9 @@ class AddSubWin(QDialog):
         self.setLayout(layout)
 
     def manga_init_state(self):
-        print(self.target_url.toPlainText())
+        
+        self.close()
+        self.parent().setup()
 
 
 class MngSubsWin(QDialog):
@@ -111,6 +114,16 @@ class MngSubsWin(QDialog):
 class FeeDexWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.first_time_check()
+        self.setup()
+
+    def setup(self):
+        settings = Settings()
+        for series, info in settings.subs.items():
+            try:
+                Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
+            except KeyError:
+                Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"])
 
         self.setWindowTitle("FeeDex Manager")
         self.setMinimumSize(QSize(800, 600))
@@ -158,6 +171,19 @@ class FeeDexWindow(QMainWindow):
 
         self.setCentralWidget(container)
 
+    def first_time_check(self):
+        subs_json_check = os.path.exists("./manga_subs_test.json")  # TODO change json before building
+        settings_json_check = os.path.exists("./settings_test.json")  # TODO change json before building
+
+        if not subs_json_check:
+            with open('manga_subs_test.json', 'w') as f:
+                f.write('{}')
+        if not settings_json_check:
+            with open('settings_test.json', 'w') as f:
+                f.write('{}')
+
+
+
     def add_sub(self):
         add_win = AddSubWin(self)
         add_win.exec()
@@ -171,13 +197,6 @@ class FeeDexWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    settings = Settings()
-    for series, info in settings.subs.items():
-        try:
-            Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
-        except KeyError:
-            Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"])
-
     app = QApplication(sys.argv)
     window = FeeDexWindow()
     window.show()
