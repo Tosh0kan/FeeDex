@@ -43,12 +43,10 @@ class Settings:
 
     def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: str = None, first_time: bool = False, update: bool = True, delete_entry: bool = True):
         if first_time:
-            # TEST vvvvvvvvvv
             for key in manga_dict.keys():
                 manga_dict[key].update({'favGroup': ""})
                 if preferr_group is not None:
                     manga_dict[key]["favGroup"] = preferr_group
-            # TEST ^^^^^^^^^^
             self.subs.update(manga_dict)
 
         # TODO change json before building
