@@ -4,7 +4,32 @@ from lib.functions import *
 import os
 import sys
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame, QDialogButtonBox
+
+
+class ErrorDialog(QDialog):
+    def __init__(self, parent=None, err_no=None):
+        super().__init__(parent)
+        self.main_layout = QVBoxLayout()
+        self.setMinimumSize(QSize(300, 100))
+
+        if err_no == 1:
+            self.setWindowTitle("FeeDex - WARNING")
+            buttons = QDialogButtonBox.Ok
+            self.button_box = QDialogButtonBox(buttons)
+            self.button_box.accepted.connect(self.accept)
+
+            err_msg = QLabel("Err. No 1: It seems you've tried to mix links for series and for lists.\n\nMake sure you input only ONE list link --OR-- one or more manga links.")
+            err_msg.setWordWrap(True)
+            err_msg.setAlignment(Qt.AlignCenter)
+
+            self.main_layout.addWidget(err_msg)
+            self.button_box_layout = QVBoxLayout()
+            self.button_box_layout.addWidget(self.button_box)
+            self.main_layout.addWidget(self.button_box)
+            self.setLayout(self.main_layout)
+
 
 
 class AddSubWin(QDialog):
@@ -18,7 +43,9 @@ class AddSubWin(QDialog):
         self.setMinimumSize(QSize(500, 300))
 
         self.target_url = QPlainTextEdit()
-        self.target_url.setPlaceholderText("Paste one or multiple manga's urls, each in a new line, or a list's url.")
+        self.target_url.setPlaceholderText("Paste one or multiple manga's urls, each in a new line\nOR\na SINGLE list's url.")
+        self.target_url.setFont(QFont('Arial', 14))
+        self.target_url.textChanged.connect(self.change_font)
 
         self.add_sub_button = QPushButton("Go")
         self.add_sub_button.clicked.connect(self.manga_init_state)
@@ -33,10 +60,34 @@ class AddSubWin(QDialog):
 
         self.setLayout(layout)
 
+    def change_font(self):
+        if self.target_url.toPlainText() != '':
+            self.target_url.setFont(QFont())
+
+        elif self.target_url.toPlainText() == '':
+            self.target_url.setFont(QFont('Arial', 14))
+
     def manga_init_state(self):
-        
-        self.close()
-        self.parent().setup()
+        text_block = self.target_url.toPlainText()
+        if 'title' in text_block and 'list' in text_block:
+            warning = ErrorDialog(parent=self, err_no=1)
+            warning.exec()
+
+        elif 'title' in text_block:
+            url_list = text_block.split('\n')
+            print(repr(url_list))
+            self.close()
+            self.parent().setup()
+
+        elif 'list' in text_block:
+            list_list = text_block
+            print(repr(list_list))
+            self.close()
+            self.parent().setup()
+
+        else:
+            self.close()
+            self.parent().setup()
 
 
 class MngSubsWin(QDialog):
