@@ -31,7 +31,6 @@ class ErrorDialog(QDialog):
             self.setLayout(self.main_layout)
 
 
-
 class AddSubWin(QDialog):
     """
     Logic for the subclass that spawns the QDialog for adding new subscriptions
@@ -76,9 +75,20 @@ class AddSubWin(QDialog):
 
         elif 'title' in text_block:
             url_list = text_block.split('\n')
+            while '' in url_list:
+                url_list.remove('')
+            for idx, url in enumerate(url_list):
+                url = url.strip()
+                url_list[idx] = url
+
             if len(url_list) == 1:
                 new_sub = get_inital_manga_state(manga_urls=url_list)
                 self.settings_obj.save_subs(first_time=True, manga_dict=new_sub)
+            else:
+                new_subs = get_inital_manga_state(manga_urls=url_list)
+                for sub in new_subs:
+                    self.settings_obj.save_subs(first_time=True, manga_dict=sub)
+
             self.close()
             self.parent().setup()
 
@@ -168,7 +178,7 @@ class MngSubsWin(QDialog):
 class FeeDexWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.first_time_check()
+        self.init_check()
         self.setup()
 
     def setup(self):
@@ -225,7 +235,7 @@ class FeeDexWindow(QMainWindow):
 
         self.setCentralWidget(container)
 
-    def first_time_check(self):
+    def init_check(self):
         subs_json_check = os.path.exists("./manga_subs_test.json")  # TODO change json before building
         settings_json_check = os.path.exists("./settings_test.json")  # TODO change json before building
 
@@ -238,7 +248,7 @@ class FeeDexWindow(QMainWindow):
         # TODO check for error in case JSON is empty
 
     def add_sub(self):
-        add_win = AddSubWin(self.settings, parent = self)
+        add_win = AddSubWin(self.settings, parent=self)
         add_win.exec()
 
     def manage_subs(self):

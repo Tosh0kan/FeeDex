@@ -11,7 +11,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 
-def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> None:
+def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> dict | list:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
