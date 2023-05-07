@@ -36,8 +36,9 @@ class AddSubWin(QDialog):
     """
     Logic for the subclass that spawns the QDialog for adding new subscriptions
     """
-    def __init__(self, parent=None):
+    def __init__(self, settings_obj, parent=None):
         super().__init__(parent)
+        self.settings_obj = settings_obj
 
         self.setWindowTitle("Add Subs...")
         self.setMinimumSize(QSize(500, 300))
@@ -75,7 +76,9 @@ class AddSubWin(QDialog):
 
         elif 'title' in text_block:
             url_list = text_block.split('\n')
-            print(repr(url_list))
+            if len(url_list) == 1:
+                new_sub = get_inital_manga_state(manga_urls=url_list)
+                self.settings_obj.save_subs(first_time=True, manga_dict=new_sub)
             self.close()
             self.parent().setup()
 
@@ -169,8 +172,8 @@ class FeeDexWindow(QMainWindow):
         self.setup()
 
     def setup(self):
-        settings = Settings()
-        for series, info in settings.subs.items():
+        self.settings = Settings()
+        for series, info in self.settings.subs.items():
             try:
                 Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
             except KeyError:
@@ -232,11 +235,10 @@ class FeeDexWindow(QMainWindow):
         if not settings_json_check:
             with open('settings_test.json', 'w') as f:
                 f.write('{}')
-
-
+        # TODO check for error in case JSON is empty
 
     def add_sub(self):
-        add_win = AddSubWin(self)
+        add_win = AddSubWin(self.settings, parent = self)
         add_win.exec()
 
     def manage_subs(self):
