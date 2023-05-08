@@ -1,6 +1,3 @@
-from lib.classes import *
-from lib.functions import *
-
 import os
 import sys
 from PySide6.QtCore import QSize, Qt
