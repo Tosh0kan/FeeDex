@@ -35,7 +35,7 @@ class AddSubWin(QDialog):
     """
     Logic for the subclass that spawns the QDialog for adding new subscriptions
     """
-    def __init__(self, settings_obj, parent=None):
+    def __init__(self, settings_obj: Settings, parent=None):
         super().__init__(parent)
         self.settings_obj = settings_obj
 
@@ -74,6 +74,7 @@ class AddSubWin(QDialog):
             warning.exec()
 
         elif 'title' in text_block:
+            self.add_sub_button.setEnabled(False)
             url_list = text_block.split('\n')
             while '' in url_list:
                 url_list.remove('')
@@ -93,8 +94,12 @@ class AddSubWin(QDialog):
             self.parent().setup()
 
         elif 'list' in text_block:
-            list_list = text_block
-            print(repr(list_list))
+            self.add_sub_button.setEnabled(False)
+            list_url = text_block.strip()
+            new_subs = get_inital_manga_state(list_url=list_url)
+            for sub in new_subs:
+                self.settings_obj.save_subs(first_time=True, manga_dict=sub)
+
             self.close()
             self.parent().setup()
 
@@ -107,7 +112,7 @@ class MngSubsWin(QDialog):
     """
     Logic for the subclass that spawns the QDialog for managing current subscriptions
     """
-    def __init__(self, population, parent=None):
+    def __init__(self, population: list, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Manage Subs...")
@@ -143,8 +148,6 @@ class MngSubsWin(QDialog):
         self.outer_layout = QHBoxLayout()
         self.outer_layout.addWidget(self.scroll_area)
         self.outer_layout.addLayout(self.delete_button_layout)
-
-        # self.setMinimumSize(QSize(300, 24 * self.inner_layout.rowCount()))
         self.setLayout(self.outer_layout)
 
     def delete_subs(self):
@@ -158,6 +161,7 @@ class MngSubsWin(QDialog):
             for manga in Mangas.registry_:
                 if manga.series_title == widget.text():
                     Mangas.registry_.remove(manga)
+                    self.parent().settings.save_subs(update=False, manga_title=manga.series_title)
             self.inner_layout.removeRow(widget)
         self.close()
 
@@ -183,12 +187,12 @@ class FeeDexWindow(QMainWindow):
 
     def setup(self):
         self.settings = Settings()
+        Mangas.janny()
         for series, info in self.settings.subs.items():
             try:
                 Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
             except KeyError:
                 Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"])
-
         self.setWindowTitle("FeeDex Manager")
         self.setMinimumSize(QSize(800, 600))
 
