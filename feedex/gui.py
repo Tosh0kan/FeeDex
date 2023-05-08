@@ -1,5 +1,5 @@
-from lib.classes import *
-from lib.functions import *
+from .classes import *
+from .functions import *
 
 import os
 import sys

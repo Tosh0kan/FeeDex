@@ -1,5 +1,3 @@
-from lib.__init__ import __version__
-
 import pytz
 import json
 from datetime import datetime as dt
@@ -24,11 +22,11 @@ class Settings:
 
         return manga_subs
 
-    def save_settings(self, update_dict: dict, lang_pref: str = None):
+    def save_settings(self, version, update_dict: dict, lang_pref: str = None):
         # TODO add method to remove favLanguages
         settings_dict = {
             "metadata": {
-                "version": __version__,
+                "version": version,
                 "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
             },
             "favLanguages": ["en"]

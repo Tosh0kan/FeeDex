@@ -203,7 +203,7 @@ def ping_jokey(sonar_echo: list, mangas_registry: list, settings_obj: Settings) 
         pass
 
 
-def new_version_check(settings_obj) -> None:
+def new_version_check(settings_obj, version) -> None:
     def get_latest_version() -> str:
         # TODO change all the names of this function so they are intuitive with repo_ver
         while True:
@@ -234,7 +234,7 @@ def new_version_check(settings_obj) -> None:
         toast.show()
 
     repo_ver = get_latest_version()
-    bool_result = version_comparer(repo_ver, __version__)
+    bool_result = version_comparer(repo_ver, version)
 
     if bool_result:
         toaster(repo_ver)
