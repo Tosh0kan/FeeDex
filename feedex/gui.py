@@ -9,26 +9,35 @@ from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayou
 
 
 class ErrorDialog(QDialog):
-    def __init__(self, parent=None, err_no=None):
+    err_msg_array = {
+        1: "Err. No 1: It seems you've tried to mix links for series and for lists. Make sure you input only ONE list link --OR-- one or more manga links.",
+        2: "Err. No 2: You're not currently subscribed to any manga.",
+        3: "Err. No 3: Your settings were empty before the program initialized."
+    }
+
+    def __init__(self, *err_nos, parent=None):
         super().__init__(parent)
-        self.main_layout = QVBoxLayout()
+        self.setWindowTitle("FeeDex - WARNING")
         self.setMinimumSize(QSize(300, 100))
 
-        if err_no == 1:
-            self.setWindowTitle("FeeDex - WARNING")
-            buttons = QDialogButtonBox.Ok
-            self.button_box = QDialogButtonBox(buttons)
-            self.button_box.accepted.connect(self.accept)
+        buttons = QDialogButtonBox.Ok
+        self.button_box = QDialogButtonBox(buttons)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box_layout = QVBoxLayout()
+        self.button_box_layout.addWidget(self.button_box)
 
-            err_msg = QLabel("Err. No 1: It seems you've tried to mix links for series and for lists.\n\nMake sure you input only ONE list link --OR-- one or more manga links.")
-            err_msg.setWordWrap(True)
-            err_msg.setAlignment(Qt.AlignCenter)
+        err_msg = ''
+        for no in err_nos:
+            err_msg += self.err_msg_array[no] + '\n\n'
 
-            self.main_layout.addWidget(err_msg)
-            self.button_box_layout = QVBoxLayout()
-            self.button_box_layout.addWidget(self.button_box)
-            self.main_layout.addWidget(self.button_box)
-            self.setLayout(self.main_layout)
+        err_label = QLabel(err_msg)
+        err_label.setWordWrap(True)
+        err_label.setAlignment(Qt.AlignJustify)
+        err_label.setContentsMargins(10, 0, 10, 0)
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addWidget(err_label)
+        self.main_layout.addWidget(self.button_box)
+        self.setLayout(self.main_layout)
 
 
 class AddSubWin(QDialog):
@@ -70,7 +79,7 @@ class AddSubWin(QDialog):
     def manga_init_state(self):
         text_block = self.target_url.toPlainText()
         if 'title' in text_block and 'list' in text_block:
-            warning = ErrorDialog(parent=self, err_no=1)
+            warning = ErrorDialog(1, parent=self)
             warning.exec()
 
         elif 'title' in text_block:
@@ -182,7 +191,7 @@ class MngSubsWin(QDialog):
 class FeeDexWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.init_check()
+        self.init_check('1.0.0')
         self.setup()
 
     def setup(self):
@@ -239,17 +248,68 @@ class FeeDexWindow(QMainWindow):
 
         self.setCentralWidget(container)
 
-    def init_check(self):
+    def init_check(self, version):
+        """
+        Makes checks to see if the JSONs exist and are empty. If they don't exist,
+        it creates it and writes an empty dicitionary in them or dummy settings,
+        depending on the JSON. It checks if they are empty using a try/except
+        block, and rewrites the empty dicitionary or dummy settings, again depending
+        on the JSON. It also spawns an ErrorDialog window to inform that the user
+        has no subs.
+        """
+        empty_subs = False
+        empty_settings = False
         subs_json_check = os.path.exists("./manga_subs_test.json")  # TODO change json before building
         settings_json_check = os.path.exists("./settings_test.json")  # TODO change json before building
 
+        settings_dict = {
+            "metadata": {
+                "version": version,
+                "lastCheck": str(dt.now(pytz.utc).strftime('%Y-%m-%dT%H:%M:%S%z'))
+            },
+            "favLanguages": ["en"]
+        }
+
         if not subs_json_check:
+            # TODO change json before building
             with open('manga_subs_test.json', 'w') as f:
                 f.write('{}')
         if not settings_json_check:
+            # TODO change json before building
             with open('settings_test.json', 'w') as f:
+                f.write(json.dumps(settings_dict, indent=4))
+
+        try:
+            # TODO change json before building
+            with open('manga_subs_test.json', 'r') as f:
+                json.loads(f.read())
+        except json.decoder.JSONDecodeError:
+            # TODO change json before building
+            with open('manga_subs_test.json', 'w') as f:
                 f.write('{}')
-        # TODO check for error in case JSON is empty
+                empty_subs = True
+        try:
+            # TODO change json before building
+            with open('settings_test.json', 'r') as f:
+                json.loads(f.read())
+        except json.decoder.JSONDecodeError:
+            # TODO change json before building
+            with open('settings_test.json', 'w') as f:
+                f.write(json.dumps(settings_dict, indent=4))
+                empty_settings = True
+
+        if empty_subs and empty_settings:
+            error_window = ErrorDialog(2, 3, parent=self)
+            error_window.exec()
+
+        elif empty_subs:
+            error_window = ErrorDialog(2, parent=self)
+            error_window.exec()
+
+        elif empty_settings:
+            error_window = ErrorDialog(3, parent=self)
+            error_window.exec()
+
 
     def add_sub(self):
         add_win = AddSubWin(self.settings, parent=self)
