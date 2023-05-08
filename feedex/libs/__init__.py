@@ -4,3 +4,4 @@ __author__ = "Tosh0kan"
 __license__ = "GPL 3.0"
 
 from .functions import *
+from .classes import *

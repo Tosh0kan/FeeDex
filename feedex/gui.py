@@ -1,8 +1,10 @@
-from libs.classes import *
-from libs.functions import *
+from libs.__init__ import *
 
 import os
 import sys
+import json
+import pytz
+from datetime import datetime as dt
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QListView, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QMainWindow, QWidget, QApplication, QCheckBox, QLabel, QScrollArea, QFrame, QDialogButtonBox
@@ -92,10 +94,10 @@ class AddSubWin(QDialog):
                 url_list[idx] = url
 
             if len(url_list) == 1:
-                new_sub = get_inital_manga_state(manga_urls=url_list)
+                new_sub = get_initial_manga_state(manga_urls=url_list)
                 self.settings_obj.save_subs(first_time=True, manga_dict=new_sub)
             else:
-                new_subs = get_inital_manga_state(manga_urls=url_list)
+                new_subs = get_initial_manga_state(manga_urls=url_list)
                 for sub in new_subs:
                     self.settings_obj.save_subs(first_time=True, manga_dict=sub)
 
@@ -105,7 +107,7 @@ class AddSubWin(QDialog):
         elif 'list' in text_block:
             self.add_sub_button.setEnabled(False)
             list_url = text_block.strip()
-            new_subs = get_inital_manga_state(list_url=list_url)
+            new_subs = get_initial_manga_state(list_url=list_url)
             for sub in new_subs:
                 self.settings_obj.save_subs(first_time=True, manga_dict=sub)
 

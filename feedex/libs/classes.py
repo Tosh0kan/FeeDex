@@ -2,6 +2,7 @@ import pytz
 import json
 from datetime import datetime as dt
 
+__all__ = ['Settings', 'Mangas']
 
 class Settings:
     def __init__(self):

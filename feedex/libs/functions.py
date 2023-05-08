@@ -11,7 +11,10 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 
-def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> dict | list:
+__all__ = ['get_initial_manga_state', 'sonar', 'toaster', 'ping_jockey', 'new_version_check']
+
+
+def get_initial_manga_state(manga_urls: list = None, list_url: str = None) -> dict | list:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
@@ -173,7 +176,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         sleep(0.20)
 
 
-def ping_jokey(sonar_echo: list, mangas_registry: list, settings_obj: Settings) -> None:
+def ping_jockey(sonar_echo: list, mangas_registry: list, settings_obj: Settings) -> None:
     """
     Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
     and the Mangas.registry_ to process the sonar echo, generate the toasts if there are any new
