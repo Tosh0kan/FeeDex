@@ -98,12 +98,11 @@ def get_inital_manga_state(manga_urls: list = None, list_url: str = None) -> dic
         return asyncio.run(manga_proccer(url_list[0:-1]))
 
 
-async def sonar(settings_set, mangas_registry: list) -> list:
+async def sonar(settings_obj: Settings, mangas_registry: list) -> list:
     """
-    The function that interacts with the API. Takes in the settings attribute of instance
-    the Settings() (usually settings.settings) class and the Mangas.registry_ to generate
-    urls that will ping the api domain, generating a list with the dicts of all the chapters
-    published since the last one.
+    The function that interacts with the API. Takes in the base instance of the Settings()
+    class and the Mangas.registry_ to generate urls that will ping the api domain, generating
+    a list with the dicts of all the chapters published since the last one.
     """
     all_urls = []
     for instance in mangas_registry:
@@ -114,7 +113,7 @@ async def sonar(settings_set, mangas_registry: list) -> list:
         url_ = f'https://api.mangadex.org/chapter?manga={instance.series_id}&publishAtSince={latest_date}&order[chapter]=desc'
         if instance.scan_group != "":
             url_ += '&groups[]=' + instance.scan_group
-        for lang in settings_set["favLanguages"]:
+        for lang in settings_obj.settings["favLanguages"]:
             url_ += f'&translatedLanguage[]={lang}'
         all_urls.append(url_)
     while len(all_urls) > 0:
@@ -174,7 +173,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         sleep(0.20)
 
 
-def ping_jokey(sonar_echo: list, mangas_registry: list, settings_obj) -> None:
+def ping_jokey(sonar_echo: list, mangas_registry: list, settings_obj: Settings) -> None:
     """
     Takes in the sonar echo, the base instance of the Settings() class (usually just settings)
     and the Mangas.registry_ to process the sonar echo, generate the toasts if there are any new
