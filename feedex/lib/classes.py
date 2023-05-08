@@ -100,3 +100,7 @@ class Mangas:
         self.ch_title = sonar_echo['attributes']["title"]
         self.ch_id = sonar_echo["id"]
         self.latest_date = sonar_echo["attributes"]["publishAt"]
+
+    @staticmethod
+    def janny():
+        Mangas.registry_.clear()
