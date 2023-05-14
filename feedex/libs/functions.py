@@ -14,33 +14,46 @@ from datetime import timedelta as td
 __all__ = ['get_initial_manga_state', 'sonar', 'toaster', 'ping_jockey', 'new_version_check']
 
 
-def get_initial_manga_state(manga_urls: list = None, list_url: str = None) -> dict | list:
+def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list_url: str = None) -> dict | list:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
     """
+
+    def dupe_check(mangas_registry, series_id) -> bool:
+        for manga in mangas_registry:
+            if manga.series_id == series_id:
+                return True
+            else:
+                continue
+        return False
+
     async def manga_proccer(url_list) -> dict | list:
         if len(url_list) == 1:
             series_id = re.split(r'.+title/([^/]+).*', url_list[0])
             series_id = ''.join(series_id)
-            series = httpx.get(
-                f'https://api.mangadex.org/manga/{series_id}',
-                follow_redirects=True
-            )
 
-            init_state = httpx.get(
-                f'https://api.mangadex.org/manga/{series_id}/feed',
-                follow_redirects=True,
-                params={
-                    # TODO change the configuration for preferred language
-                    "translatedLanguage[]": "en",
-                    "order[readableAt]": "desc"
-                }
-            ).json()["data"][0]
+            if dupe_check(mangas_registry, series_id):
+                return
+            else: #
+                series = httpx.get(
+                    f'https://api.mangadex.org/manga/{series_id}',
+                    follow_redirects=True
+                )
 
-            series_title = series.json()['data']['attributes']["title"]["en"]
+                init_state = httpx.get(
+                    f'https://api.mangadex.org/manga/{series_id}/feed',
+                    follow_redirects=True,
+                    params={
+                        # TODO change the configuration for preferred language
+                        "translatedLanguage[]": "en",
+                        "order[readableAt]": "desc"
+                    }
+                ).json()["data"][0]
 
-            return {series_title: init_state}
+                series_title = series.json()['data']['attributes']["title"]["en"]
+
+                return {series_title: init_state}
 
         else:
             title_urls = []
@@ -48,10 +61,15 @@ def get_initial_manga_state(manga_urls: list = None, list_url: str = None) -> di
             for url in url_list:
                 series_id = re.split(r'.+title/([^/]+).*', url)
                 series_id = ''.join(series_id)
-                title_url = f'https://api.mangadex.org/manga/{series_id}'
-                title_urls.append(title_url)
-                feed_url = f'https://api.mangadex.org/manga/{series_id}/feed'
-                feed_urls.append(feed_url)
+
+                if dupe_check(mangas_registry, series_id):
+                    continue
+
+                else:
+                    title_url = f'https://api.mangadex.org/manga/{series_id}'
+                    title_urls.append(title_url)
+                    feed_url = f'https://api.mangadex.org/manga/{series_id}/feed'
+                    feed_urls.append(feed_url)
 
             while len(feed_urls) > 0 and len(title_urls) > 0:
                 async with httpx.AsyncClient() as client:

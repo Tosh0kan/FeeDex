@@ -90,10 +90,10 @@ class AddSubWin(QDialog):
                 url_list[idx] = url
 
             if len(url_list) == 1:
-                new_sub = get_initial_manga_state(manga_urls=url_list)
+                new_sub = get_initial_manga_state(Mangas.registry_, manga_urls=url_list)
                 self.settings_obj.save_subs(first_time=True, manga_dict=new_sub)
             else:
-                new_subs = get_initial_manga_state(manga_urls=url_list)
+                new_subs = get_initial_manga_state(Mangas.registry_, manga_urls=url_list)
                 for sub in new_subs:
                     self.settings_obj.save_subs(first_time=True, manga_dict=sub)
 
@@ -103,7 +103,7 @@ class AddSubWin(QDialog):
         elif 'list' in text_block:
             self.add_sub_button.setEnabled(False)
             list_url = text_block.strip()
-            new_subs = get_initial_manga_state(list_url=list_url)
+            new_subs = get_initial_manga_state(Mangas.registry_, list_url=list_url)
             for sub in new_subs:
                 self.settings_obj.save_subs(first_time=True, manga_dict=sub)
 
