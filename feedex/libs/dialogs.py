@@ -6,6 +6,9 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QWidget, QCheckBox, QLabel, QScrollArea, QDialogButtonBox
 
 
+__all__ = ['ErrorDialog', 'AddSubWin', 'MngSubsWin']
+
+
 class ErrorDialog(QDialog):
     err_msg_array = {
         1: "Err. No 1: It seems you've tried to mix links for series and for lists. Make sure you input only ONE list link --OR-- one or more manga links.",
@@ -171,6 +174,7 @@ class MngSubsWin(QDialog):
                     self.parent().settings.save_subs(update=False, manga_title=manga.series_title)
             self.inner_layout.removeRow(widget)
         self.close()
+        self.parent().setup()
 
     def button_state_change(self, chk):
         if not self.delete_button.isEnabled():
