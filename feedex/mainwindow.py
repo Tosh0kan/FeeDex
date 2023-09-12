@@ -1,4 +1,5 @@
 from libs.__init__ import *
+from libs.__init__ import __version__
 
 import os
 import sys
@@ -13,7 +14,7 @@ from PySide6.QtWidgets import QPushButton, QListView, QHBoxLayout, QVBoxLayout, 
 class FeeDexWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.init_check('1.0.0')
+        self.init_check(__version__)
         self.setup()
 
     def setup(self):
@@ -131,7 +132,6 @@ class FeeDexWindow(QMainWindow):
         elif empty_settings:
             error_window = ErrorDialog(3, parent=self)
             error_window.exec()
-
 
     def add_sub(self):
         add_win = AddSubWin(self.settings, parent=self)
