@@ -76,7 +76,7 @@ class AddSubWin(QDialog):
 
         elif self.target_url.toPlainText() == '':
             self.target_url.setFont(QFont('Arial', 14))
-
+# HACK Change the string checks to support other sites
     def manga_init_state(self):
         text_block = self.target_url.toPlainText()
         if 'title' in text_block and 'list' in text_block:
