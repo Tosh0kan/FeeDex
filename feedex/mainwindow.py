@@ -1,5 +1,6 @@
-from libs.__init__ import *
 from libs.__init__ import __version__
+from libs.classes import Settings, Mangas
+from libs.dialogs import ErrorDialog, AddSubWin, MngSubsWin
 
 import os
 import sys
@@ -7,7 +8,6 @@ import json
 import pytz
 from datetime import datetime as dt
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QPushButton, QListView, QHBoxLayout, QVBoxLayout, QMainWindow, QWidget, QApplication, QScrollArea, QFrame
 
 

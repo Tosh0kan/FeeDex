@@ -1,5 +1,5 @@
-from .classes import *
-from .functions import *
+from .classes import Settings, Mangas
+from .functions import get_initial_manga_state
 
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QFont

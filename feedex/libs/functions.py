@@ -1,4 +1,4 @@
-from .classes import *
+from .classes import Settings
 
 import re
 import pytz
