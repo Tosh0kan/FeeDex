@@ -121,9 +121,8 @@ class Guncs:
         executed the check.
         """
         def get_latest_version() -> str:
-            r_vers = httpx.get('https://github.com/Tosh0kan/FeeDex/releases')
-            active_page = BeautifulSoup(r_vers.text, 'lxml')
-            current_version = active_page.find_all('h2', class_='sr-only')[0].text
+            r_vers = httpx.get('https://api.github.com/repos/Tosh0kan/FeeDex/releases')
+            current_version = r_vers.json()[0]['tag_name']
             return current_version
 
         def version_comparer(remote: str, local: str) -> bool:
@@ -179,6 +178,7 @@ class Guncs:
 
             if dt.now(pytz.utc) >= last_version_check + td(hours=24):
                 Guncs.new_version_check()
+                last_version_check = dt.now(pytz.utc)
 
 
 if __name__ == '__main__':
