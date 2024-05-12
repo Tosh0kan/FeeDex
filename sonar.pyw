@@ -4,7 +4,6 @@ import json
 import httpx
 import asyncio
 from time import sleep
-from bs4 import BeautifulSoup
 from winotify import Notification
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -35,7 +34,17 @@ class Guncs:
             "order[chapter]": "desc"
         }
 
-        all_urls = [main.Arrays.base_url + data["relationships"][1]["id"] + '/feed' for key, data in Arrays.settings_dict.items() if "metadata" not in key]
+        manga_ids = []
+        for manga, data in Arrays.settings_dict.items():
+            if manga != 'metadata':
+                for e in data['relationships']:
+                    if e['type'] == 'manga':
+                        manga_ids.append(e['id'])
+                        break
+            else:
+                continue
+
+        all_urls = [main.Arrays.base_url + id + '/feed' for id in manga_ids]
 
         while len(all_urls) > 0:
             async with httpx.AsyncClient() as client:
@@ -45,14 +54,29 @@ class Guncs:
             # The inner loop gets the title of the manga from the API to use as the
             # key of the manga's key-value pair. The value is all data about the newest
             # chapter.
-            for req in reqs:
+            for req in reqs: # Loop 1
                 try:
                     if req.status_code == 200:
-                        for key, value in Arrays.settings_dict.items():
-                            if value["relationships"][1]["id"] == req.json()["data"][0]["relationships"][1]["id"]:
+                        req_json = req.json()
+                        for e in req_json['data'][0]['relationships']: # Loop 2A
+                            if e['type'] == 'manga':
+                                manga_id = e['id']
+                                break
+                            else:
+                                continue
+                        for key, value in Arrays.settings_dict.items(): # Loop 2B
+                            for n in value["relationships"]: # Loop 3A
+                                if n['type'] == 'manga':
+                                    value_id = n['id']
+                                    break
+                                else:
+                                    continue
+                            if value_id == manga_id:
                                 title = key
                                 break
-                        ap_items = req.json()["data"][0]
+                            else:
+                                continue
+                        ap_items = req_json["data"][0]
                         Arrays.updated_status.setdefault(title, ap_items)
                         all_urls.remove(str(req.url).split('?')[0])
 
