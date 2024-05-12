@@ -7,7 +7,7 @@ import httpx
 from datetime import datetime as dt
 
 __author__ = "Tosh0kan"
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 class Arrays:
