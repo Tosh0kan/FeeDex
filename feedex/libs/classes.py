@@ -40,13 +40,16 @@ class Settings:
         with open('settings_test.json', 'w') as f:
             f.write(json.dumps(self.settings, indent=4))
 
-    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: str = None, first_time: bool = False, update: bool = True, delete_entry: bool = True):
+    def save_subs(self, manga_title: str = None, manga_dict: dict = None, preferr_group: str = None,
+                  first_time: bool = False, update: bool = True, delete_entry: bool = True):
+        # FIXME: This block has to be updated to be able to handle a list
         if first_time:
             for key in manga_dict.keys():
                 manga_dict[key].update({'favGroup': ""})
                 if preferr_group is not None:
                     manga_dict[key]["favGroup"] = preferr_group
             self.subs.update(manga_dict)
+        # FIXME
 
         # TODO change json before building
             with open('manga_subs_test.json', 'w', encoding='utf-8') as f:
@@ -78,7 +81,8 @@ class Settings:
 class Mangas:
     registry_ = []
 
-    def __init__(self, series_title: str, series_id: str, ch_no: str, ch_title: str, ch_id: str, latest_date: str, scan_group: str = ''):
+    def __init__(self, series_title: str, series_id: str, ch_no: str, ch_title: str,
+                 ch_id: str, latest_date: str, scan_group: str = ''):
         self.series_title = series_title
         self.series_id = series_id
         self.ch_no = ch_no
@@ -89,7 +93,9 @@ class Mangas:
         Mangas.registry_.append(self)
 
     def __repr__(self) -> str:
-        return "Manga('{}','{}', '{}', '{}', '{}', '{}', '{}')".format(self.series_title, self.series_id, self.ch_no, self.ch_title, self.ch_id, self.scan_group, self.latest_date)
+        return "Manga('{}','{}', '{}', '{}', '{}', '{}', '{}')".format(self.series_title, self.series_id, self.ch_no,
+                                                                        self.ch_title, self.ch_id, self.scan_group,
+                                                                        self.latest_date)
 
     def __str__(self) -> str:
         return "{}, Latest Upload: Ch {}, {}, {}".format(self.series_title, self.ch_no, self.ch_title, self.latest_date)

@@ -8,7 +8,17 @@ import json
 import pytz
 from datetime import datetime as dt
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QPushButton, QListView, QHBoxLayout, QVBoxLayout, QMainWindow, QWidget, QApplication, QScrollArea, QFrame
+from PySide6.QtWidgets import (
+    QPushButton,
+    QListView,
+    QHBoxLayout,
+    QVBoxLayout,
+    QMainWindow,
+    QWidget,
+    QApplication,
+    QScrollArea,
+    QFrame
+)
 
 
 class FeeDexWindow(QMainWindow):
@@ -21,10 +31,9 @@ class FeeDexWindow(QMainWindow):
         self.settings = Settings()
         Mangas.janny()
         for series, info in self.settings.subs.items():
-            try:
-                Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"])
-            except KeyError:
-                Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"], info["attributes"]["title"], info["id"], info["attributes"]["publishAt"])
+            Mangas(series, info["relationships"][1]["id"], info["attributes"]["chapter"],
+                   info["attributes"]["title"], info["id"], info["attributes"]["publishAt"], info["favGroup"]
+                   )
         self.setWindowTitle("FeeDex Manager")
         self.setMinimumSize(QSize(800, 600))
 

@@ -46,7 +46,8 @@ class Guncs:
         global first_time_use
         while True:
             if first_time_use:
-                first_sub = input("\nSince this is your first time using the program, we need to start by adding your first manga to watch.\nPlease, paste the URL of the manga's main page\n\n")
+                first_sub = input("\nSince this is your first time using the program, we need to start by adding"
+                                  " your first manga to watch.\nPlease, paste the URL of the manga's main page\n\n")
 
                 if 'http' in first_sub:
                     manga_title, most_recent_chapter = Guncs.get_inital_manga_state(first_sub)
@@ -64,7 +65,8 @@ class Guncs:
                     while True:
                         for manga in Arrays.manga_list:
                             print('\n', manga, sep='')
-                        scnd_menu_choice = input(("\nChoose one of the options below:\n1. Add manga to subscriptions\n2. Remove manga from subscriptions\n3. Previous menu\n\n"))
+                        scnd_menu_choice = input(("\nChoose one of the options below:\n1. Add manga to subscriptions\n"
+                                                  "2. Remove manga from subscriptions\n3. Previous menu\n\n"))
 
                         if '1' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             manga_url = input("\nPlease, paste the URL of the manga's main page\n")
@@ -87,10 +89,12 @@ class Guncs:
                                         break
 
                                     else:
-                                        print("\nInvalid choice. Make sure you're choosing the option by typing in the according number\n")
+                                        print("\nInvalid choice. Make sure you're choosing the option by typing in"
+                                              " the according number\n")
 
                                 except ValueError:
-                                    print("\nInvalid choice. Make sure you're choosing the option by typing in the according number\n")
+                                    print("\nInvalid choice. Make sure you're choosing the option by typing in "
+                                          "the according number\n")
 
                         elif '3' in scnd_menu_choice and len(scnd_menu_choice) == 1:
                             break
@@ -119,7 +123,7 @@ class Guncs:
                 "order[chapter]": "desc"
             }
         )
-    
+
         manga_title = r_title.json()['data']['attributes']["title"]["en"]
 
         most_recent_chapter = r_data.json()["data"][0]

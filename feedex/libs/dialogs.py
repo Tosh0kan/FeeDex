@@ -3,7 +3,19 @@ from .functions import get_initial_manga_state
 
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QWidget, QCheckBox, QLabel, QScrollArea, QDialogButtonBox
+from PySide6.QtWidgets import (
+    QPlainTextEdit,
+    QPushButton,
+    QHBoxLayout,
+    QVBoxLayout,
+    QFormLayout,
+    QDialog,
+    QWidget,
+    QCheckBox,
+    QLabel,
+    QScrollArea,
+    QDialogButtonBox
+)
 
 
 __all__ = ['ErrorDialog', 'AddSubWin', 'MngSubsWin']
@@ -11,7 +23,8 @@ __all__ = ['ErrorDialog', 'AddSubWin', 'MngSubsWin']
 
 class ErrorDialog(QDialog):
     err_msg_array = {
-        1: "Err. No 1: It seems you've tried to mix links for series and for lists. Make sure you input only ONE list link --OR-- one or more manga links.",
+        1: "Err. No 1: It seems you've tried to mix links for series and for lists. Make sure you input only ONE"
+        "list\'s link --OR-- one or more manga links.",
         2: "Err. No 2: You're not currently subscribed to any manga.",
         3: "Err. No 3: Your settings were empty before the program initialized."
     }
@@ -53,7 +66,9 @@ class AddSubWin(QDialog):
         self.setMinimumSize(QSize(500, 300))
 
         self.target_url = QPlainTextEdit()
-        self.target_url.setPlaceholderText("Paste one or multiple manga's urls, each in a new line\nOR\na SINGLE list's url.")
+        self.target_url.setPlaceholderText("Paste one or multiple manga's urls,"
+                                           "each in a new line\nOR\na SINGLE list's url."
+                                           )
         self.target_url.setFont(QFont('Arial', 14))
         self.target_url.textChanged.connect(self.change_font)
 
@@ -76,7 +91,7 @@ class AddSubWin(QDialog):
 
         elif self.target_url.toPlainText() == '':
             self.target_url.setFont(QFont('Arial', 14))
-# HACK Change the string checks to support other sites
+# HACK Support Multiple Sources: Change the string checks
     def manga_init_state(self):
         text_block = self.target_url.toPlainText()
         if 'title' in text_block and 'list' in text_block:
