@@ -13,13 +13,14 @@ from datetime import timedelta as td
 
 __all__ = ['get_initial_manga_state', 'sonar', 'toaster', 'ping_jockey', 'new_version_check']
 
-
+#HACK Support Multiple Sources: Rename function to accept external code inejction
 def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list_url: str = None) -> dict | list:
     """
     Requests the API the current state of the newly subscribed manga
     to populate the JSON.
     """
 
+    #HACK Support Multiple Sources: Add site URL + ID to check
     def dupe_check(mangas_registry, series_id) -> bool:
         for manga in mangas_registry:
             if manga.series_id == series_id:
@@ -28,6 +29,7 @@ def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list
                 continue
         return False
 
+    #HACK Support Multiple Sources: Change GET url
     async def manga_proccer(url_list) -> dict | list:
         if len(url_list) == 1:
             series_id = re.split(r'.+title/([^/]+).*', url_list[0])
@@ -65,6 +67,7 @@ def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list
                 if dupe_check(mangas_registry, series_id):
                     continue
 
+                #HACK Support Multiple Sources: Change GET url
                 else:
                     title_url = f'https://api.mangadex.org/manga/{series_id}'
                     title_urls.append(title_url)
@@ -80,13 +83,19 @@ def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list
                     tasks = (client.get(url, follow_redirects=True, timeout=10) for url in feed_urls)
                     feed_reqs = await asyncio.gather(*tasks)
 
+                #HACK Support Multiple Sources: Change ID check method 2 use a hash table w/ list comprehension
                 init_states = []
                 for title in title_reqs:
                     try:
                         if title.status_code == 200:
                             for feed in feed_reqs:
+                                """
+                                Checks the id of <title> with the id of <feed>, and if they are the same
+                                couples the former with the latter to create the subscription dict
+                                """
                                 if title.json()["data"]["id"] == feed.json()["data"][0]["relationships"][1]["id"]:
-                                    init_states.append({title.json()['data']['attributes']["title"]["en"]: feed.json()["data"][0]})
+                                    init_states.append({title.json()['data']['attributes']["title"]["en"]:
+                                        feed.json()["data"][0]})
                                     title_urls.remove(str(title.url))
                                     feed_urls.remove(str(feed.url))
                                     break
@@ -103,7 +112,14 @@ def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list
     if manga_urls is not None:
         return asyncio.run(manga_proccer(manga_urls))
 
+    #HACK Support Multiple Sources: This block needs a check at the beginning for MDex URLs
     else:
+        """
+        This block takes the list id and req all the mangas belonging to it,
+        then adds them to a list. At the the end, manga_proccer needs a sliced
+        list because the last elements of an MDex list is the id of the user
+        that created it.
+        """
         procced_list_url = re.split(r'.+list/([^/]*).*', list_url)
         procced_list_url = ''.join(procced_list_url)
         list_ids = httpx.get(
@@ -118,7 +134,7 @@ def get_initial_manga_state(mangas_registry: list, manga_urls: list = None, list
             url_list.append(f'https://mangadex.org/title/{id}/')
         return asyncio.run(manga_proccer(url_list[0:-1]))
 
-
+#HACK Support Multiple Sources: Make URL check
 async def sonar(settings_obj: Settings, mangas_registry: list) -> list:
     """
     The function that interacts with the API. Takes in the base instance of the Settings()
@@ -142,6 +158,7 @@ async def sonar(settings_obj: Settings, mangas_registry: list) -> list:
             tasks = (client.get(url, follow_redirects=True, timeout=10) for url in all_urls)
             reqs = await asyncio.gather(*tasks)
 
+        #HACK Support Multiple Sources: Change ID check method 2 use a hash table w/ list comprehension
         output_ = []
         for req in reqs:
             try:
@@ -157,6 +174,7 @@ async def sonar(settings_obj: Settings, mangas_registry: list) -> list:
                 continue
 
     output_ = [req.json()["data"] for req in reqs]
+    #HACK Support Multiple Sources: Change ID check method 2 use a hash table w/ list comprehension
     new_output = []
     for series in output_:
         for chapter in series:
@@ -176,6 +194,7 @@ def toaster(sonar_echo: list, mangas_registry: list) -> None:
         toast.show()
         sleep(0.20)
 
+#HACK Support Multiple Sources: Change ID check method 2 use a hash table w/ list comprehension
     for chapter in sonar_echo:
         for manga in mangas_registry:
             if chapter["relationships"][1]["id"] == manga.series_id:
@@ -203,6 +222,7 @@ def ping_jockey(sonar_echo: list, mangas_registry: list, settings_obj: Settings)
     """
     if len(sonar_echo) > 0:
         toaster(sonar_echo, mangas_registry)
+        #HACK Support Multiple Sources: Change ID check method 2 use a hash table w/ list comprehension
         skip_list = []
         for chapter in sonar_echo:
             for manga in mangas_registry:
